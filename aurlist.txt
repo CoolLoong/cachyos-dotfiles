@@ -4,4 +4,4 @@ visual-studio-code-bin
 feishu-bin
 aliyunpan-go-bin
 clash-verge-rev-bin
-fcitx5-nord
+fcitx5-themes-candlelight

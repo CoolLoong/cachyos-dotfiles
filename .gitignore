@@ -2,3 +2,6 @@
 **/rime/user.yaml
 **/rime/*/*.userdb.txt
 **/rime_ice.userdb.txt
+.local/share/fcitx5/fcitx5/rime/build/
+.local/share/fcitx5/fcitx5/rime/rime_ice.userdb/
+.local/share/fcitx5/fcitx5/rime/sync/**
