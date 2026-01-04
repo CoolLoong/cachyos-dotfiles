@@ -17,7 +17,6 @@ sudo cp ./etc/default/grub /etc/default/grub
 sudo grub-mkconfig -o /boot/grub/grub.cfg
 
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-clash-verge-rev-bin
 
 reboot
 ```
