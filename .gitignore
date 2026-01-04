@@ -1,0 +1,4 @@
+**/rime/*.userdb/
+**/rime/user.yaml
+**/rime/*/*.userdb.txt
+**/rime_ice.userdb.txt

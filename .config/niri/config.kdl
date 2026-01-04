@@ -165,6 +165,7 @@ binds {
     spawn-sh-at-startup "/usr/lib/polkit-kde-authentication-agent-1 &" // Polkit
     spawn-sh-at-startup "qs -c noctalia-shell"
     spawn-sh-at-startup "fcitx5 -d"
+    spawn-sh-at-startup "wl-paste --watch cliphist store"
     //spawn-sh-at-startup "swww-daemon" // Wallpaper daemon
     //spawn-sh-at-startup "swww img /usr/share/wallpapers/cachyos-wallpapers/Skyscraper.png" // Set wallpaper
     //spawn-sh-at-startup "waybar" // Launch waybar
@@ -240,8 +241,8 @@ binds {
 // https://github.com/YaLTeR/niri/wiki/Configuration:-Window-Rules
 
     window-rule {
-        match app-id=r#"flameshot$"# title="^Flameshot$"
-        open-floating true  // Always float Flameshot windows
+        match app-id="flameshot"
+        open-floating true
     }
 
 

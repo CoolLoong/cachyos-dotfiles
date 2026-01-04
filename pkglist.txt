@@ -3,6 +3,7 @@ fcitx5-chinese-addons
 fcitx5-qt
 fcitx5-gtk
 fcitx5-configtool
+fcitx5-material-color
 noctalia-shell
 ttf-sarasa-gothic
 ttf-nerd-fonts-symbols
@@ -10,3 +11,8 @@ noto-fonts-emoji
 ttf-font-awesome
 dbeaver
 flameshot
+grim
+slurp
+xdg-desktop-portal-wlr
+wl-clipboard
+cliphist
