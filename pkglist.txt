@@ -4,5 +4,9 @@ fcitx5-qt
 fcitx5-gtk
 fcitx5-configtool
 noctalia-shell
-noto-fonts-emoji
 ttf-sarasa-gothic
+ttf-nerd-fonts-symbols
+noto-fonts-emoji
+ttf-font-awesome
+dbeaver
+flameshot

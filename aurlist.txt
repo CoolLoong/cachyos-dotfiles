@@ -1,3 +1,5 @@
 rime-ice
 google-chrome
 visual-studio-code-bin
+feishu-bin
+aliyunpan-go-bin

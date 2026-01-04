@@ -1,0 +1,23 @@
+# cachyos
+
+## command
+
+```sh
+rm -rf ~/下载 ~/公共 ~/图片 ~/文档 ~/桌面 ~/模板 ~/视频 ~/音乐
+mkdir -p ~/downloads ~/public ~/pictures ~/documents ~/desktop ~/templates  ~/videos ~/music
+
+xargs -L1 sudo pacman -S --needed < pkglist.txt
+xargs -L1 -I{} sh -c 'paru -S --needed "{}"' < aurlist.txt
+sudo pacman -R firefox
+
+cp -r ./.config/* ~/.config/
+fc-cache -fv
+
+sudo cp ./etc/default/grub /etc/default/grub
+sudo grub-mkconfig -o /boot/grub/grub.cfg
+
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+clash-verge-rev-bin
+
+reboot
+```
