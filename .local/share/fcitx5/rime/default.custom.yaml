@@ -1,2 +1,11 @@
 patch:
   __include: rime_ice_suggestion:/
+  speller/algebra:
+    - derive/^([zcs])h/$1/
+    - derive/^([zcs])([^h])/$1h$2/
+    - derive/^n/l/
+    - derive/^l/n/
+  menu/page_size: 7
+  ascii_composer:
+    switch_key:
+      Caps_Lock: noop

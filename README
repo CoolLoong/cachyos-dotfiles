@@ -10,8 +10,9 @@ xargs -o -a pkglist.txt -I {} sudo pacman -S --needed {}
 xargs -o -a aurlist.txt -I {} paru -S --needed {}
 sudo pacman -R firefox
 
-cp -r ./.config/* ~/.config/
-cp -r ./.local/share/* ~/.local/share/
+cp -rf ./.config/* ~/.config/
+cp -rf ./.local/share/* ~/.local/share/
+sudo cp -rf ./usr/share/applications/* /usr/share/applications/
 fc-cache -fv
 
 sudo cp ./etc/default/grub /etc/default/grub
@@ -20,6 +21,10 @@ sudo grub-mkconfig -o /boot/grub/grub.cfg
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 
 pkill fcitx5 && fcitx5 -rd &
+
+gsettings set org.gnome.desktop.interface icon-theme 'Papirus'
+sudo gtk-update-icon-cache -f /usr/share/icons/hicolor
+sudo gtk-update-icon-cache -f /usr/share/icons/Papirus
 
 reboot
 ```
