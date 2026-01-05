@@ -26,5 +26,7 @@ gsettings set org.gnome.desktop.interface icon-theme 'Papirus'
 sudo gtk-update-icon-cache -f /usr/share/icons/hicolor
 sudo gtk-update-icon-cache -f /usr/share/icons/Papirus
 
+chmod +x ~/.config/niri/feishu-startup.sh
+
 reboot
 ```
