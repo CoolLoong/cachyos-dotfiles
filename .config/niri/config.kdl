@@ -267,6 +267,7 @@ binds {
         XDG_SESSION_TYPE "wayland"
         XDG_CURRENT_DESKTOP "niri"
         XMODIFIERS "@im=fcitx"
+        QS_ICON_THEME "Papirus"
     }
 
     hotkey-overlay {
