@@ -26,3 +26,4 @@ spotify-launcher
 blueman
 oculante
 haruna
+gnome-keyring
