@@ -1,11 +1,22 @@
 patch:
   __include: rime_ice_suggestion:/
+  
   speller/algebra:
     - derive/^([zcs])h/$1/
     - derive/^([zcs])([^h])/$1h$2/
     - derive/^n/l/
     - derive/^l/n/
+  
   menu/page_size: 7
+  
   ascii_composer:
     switch_key:
       Caps_Lock: noop
+  
+  translator/enable_user_dict: true
+  translator/enable_sentence: true
+  translator/enable_encoder: true
+  translator/encode_commit_history: true
+  translator/max_phrase_length: 7
+  
+  melt_eng/initial_quality: 0.3

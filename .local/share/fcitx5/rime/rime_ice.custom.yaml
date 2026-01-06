@@ -1,0 +1,3 @@
+patch:
+  translator/contextual_suggestions: true
+  translator/initial_quality: 1.5
