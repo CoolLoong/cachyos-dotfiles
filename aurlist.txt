@@ -10,3 +10,4 @@ ttf-wps-fonts
 libtiff5
 nautilus-open-any-terminal
 sddm-catppuccin-git
+maplemono-nf-cn-unhinted

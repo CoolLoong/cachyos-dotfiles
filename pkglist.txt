@@ -6,7 +6,6 @@ fcitx5-configtool
 fcitx5-material-color
 fcitx5-rime
 noctalia-shell
-ttf-sarasa-gothic
 ttf-nerd-fonts-symbols
 noto-fonts-emoji
 ttf-font-awesome
