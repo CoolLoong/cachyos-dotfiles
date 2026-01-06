@@ -18,3 +18,9 @@ xdg-desktop-portal-wlr
 wl-clipboard
 cliphist
 papirus-icon-theme
+zed
+docker
+docker-compose
+matugen
+spotify-launcher
+blueman

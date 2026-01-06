@@ -11,6 +11,7 @@
         "position": "center",
         "screenshotAnnotationTool": "",
         "showCategories": true,
+        "showIconBackground": true,
         "sortByMostUsed": true,
         "terminalCommand": "xterm -e",
         "useApp2Unit": false,
@@ -96,24 +97,21 @@
                     "scrollingMode": "hover",
                     "showIcon": true,
                     "useFixedWidth": false
-                },
+                }
+            ],
+            "right": [
                 {
                     "hideMode": "hidden",
                     "hideWhenIdle": false,
                     "id": "MediaMini",
-                    "maxWidth": 145,
+                    "maxWidth": 200,
                     "scrollingMode": "hover",
-                    "showAlbumArt": false,
+                    "showAlbumArt": true,
                     "showArtistFirst": true,
                     "showProgressRing": true,
                     "showVisualizer": false,
                     "useFixedWidth": false,
                     "visualizerType": "linear"
-                }
-            ],
-            "right": [
-                {
-                    "id": "ScreenRecorder"
                 },
                 {
                     "blacklist": [
@@ -146,6 +144,10 @@
                 {
                     "displayMode": "onhover",
                     "id": "Brightness"
+                },
+                {
+                    "displayMode": "onhover",
+                    "id": "Bluetooth"
                 },
                 {
                     "displayMode": "onhover",
@@ -194,9 +196,9 @@
         "manualSunrise": "06:30",
         "manualSunset": "18:30",
         "matugenSchemeType": "scheme-fruit-salad",
-        "predefinedScheme": "Eldritch",
+        "predefinedScheme": "Nord",
         "schedulingMode": "off",
-        "useWallpaperColors": false
+        "useWallpaperColors": true
     },
     "controlCenter": {
         "cards": [
@@ -285,7 +287,7 @@
         "allowPanelsOnScreenWithoutBar": true,
         "animationDisabled": false,
         "animationSpeed": 1,
-        "avatarImage": "/home/wing/.face",
+        "avatarImage": "/home/wing/pictures/icon.jpeg",
         "boxRadiusRatio": 1,
         "compactLockScreen": false,
         "dimmerOpacity": 0.2,
@@ -327,9 +329,9 @@
     },
     "network": {
         "bluetoothDetailsViewMode": "grid",
-        "bluetoothHideUnnamedDevices": false,
+        "bluetoothHideUnnamedDevices": true,
         "bluetoothRssiPollIntervalMs": 10000,
-        "bluetoothRssiPollingEnabled": false,
+        "bluetoothRssiPollingEnabled": true,
         "wifiDetailsViewMode": "list",
         "wifiEnabled": true
     },
@@ -507,7 +509,7 @@
         "tooltipsEnabled": true
     },
     "wallpaper": {
-        "directory": "/home/wing/Pictures/Wallpapers",
+        "directory": "/home/wing/pictures/wallpapers",
         "enableMultiMonitorDirectories": false,
         "enabled": true,
         "fillColor": "#000000",
