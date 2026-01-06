@@ -245,6 +245,11 @@ binds {
         match app-id="satty"
         open-floating true
     }
+    
+    window-rule {
+        match app-id="oculante"
+        open-floating true
+    }
 
     window-rule {
         match title="图片"

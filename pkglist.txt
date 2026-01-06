@@ -24,3 +24,5 @@ docker-compose
 matugen
 spotify-launcher
 blueman
+oculante
+haruna
