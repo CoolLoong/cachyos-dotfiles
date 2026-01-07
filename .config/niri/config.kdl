@@ -33,6 +33,12 @@ input {
 output "PNP(AOC) 24G2W1G4 0x0001A552" {
     mode "1920x1080@144.001"
 }
+output "AU Optronics 0x07B2 Unknown" {
+    mode "2560x1600@240.014"
+}
+output "Xiaomi Corporation Mi Monitor 5640810193861" {
+    mode "2560x1440@99.946"
+}
 
 // ────────────── Keybindings ──────────────
 // https://github.com/YaLTeR/niri/wiki/Configuration:-Key-Bindings
@@ -149,7 +155,7 @@ binds {
     MOD+W                               { toggle-column-tabbed-display; }
 
     // ─── Screenshots ───
-    MOD+F1                             { spawn-sh "grim -g \"$(slurp)\" - | satty -f -"; }
+    MOD+F1                             { spawn-sh "grim -t ppm -g \"$(slurp -d)\" - | satty -f -"; }
 
     // ─── Emergency Escape Key ───
     // Use this when a fullscreen app blocks your keybinds.

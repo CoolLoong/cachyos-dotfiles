@@ -9,7 +9,9 @@ mkdir -p ~/downloads ~/public ~/pictures ~/documents ~/desktop ~/templates  ~/vi
 sudo pacman -Syy
 xargs -o -a pkglist.txt -I {} sudo pacman -S --needed {}
 xargs -o -a aurlist.txt -I {} paru -S --needed {}
-sudo pacman -R firefox
+
+sudo pacman -Rns firefox
+sudo pacman -Rns nautilus-open-any-terminal
 
 cp -rf ./.config/* ~/.config/
 cp -rf ./.local/share/* ~/.local/share/
