@@ -11,7 +11,6 @@ xargs -o -a pkglist.txt -I {} sudo pacman -S --needed {}
 xargs -o -a aurlist.txt -I {} paru -S --needed {}
 
 sudo pacman -Rns firefox
-sudo pacman -Rns nautilus-open-any-terminal
 
 cp -rf ./.config/* ~/.config/
 cp -rf ./.local/share/* ~/.local/share/
@@ -28,7 +27,6 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 pkill fcitx5 && fcitx5 -rd &
 
 gsettings set org.gnome.desktop.interface icon-theme 'Papirus'
-gsettings set com.github.stunkymonkey.nautilus-open-any-terminal terminal alacritty
 
 sudo gtk-update-icon-cache -f /usr/share/icons/hicolor
 sudo gtk-update-icon-cache -f /usr/share/icons/Papirus
