@@ -34,3 +34,15 @@ xdg-desktop-portal-gnome
 pipewire
 wireplumber
 evtest
+file
+ffmpeg
+p7zip
+jq
+poppler
+fd
+ripgrep
+fzf
+zoxide
+imagemagick
+ffmpegthumbnailer
+gnome-calendar
