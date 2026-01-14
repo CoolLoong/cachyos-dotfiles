@@ -12,3 +12,4 @@ sddm-catppuccin-git
 maplemono-nf-cn-unhinted
 clipboard-sync
 apifox-bin
+rustdesk-bin
