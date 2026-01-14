@@ -1,15 +1,26 @@
-rime-ice-git
-google-chrome
-visual-studio-code-bin
-feishu-bin
-aliyunpan-go-bin
-clash-verge-rev-bin
-fcitx5-themes-candlelight
-wps-office
-ttf-wps-fonts
-libtiff5
-sddm-catppuccin-git
-maplemono-nf-cn-unhinted
-clipboard-sync
-apifox-bin
-rustdesk-bin
+# 输入法相关
+rime-ice-git                # Rime 输入法配置方案（雾凇拼音）
+fcitx5-themes-candlelight   # Fcitx5 烛光主题
+
+# 浏览器和开发工具
+google-chrome               # Chrome 浏览器
+visual-studio-code-bin      # VS Code 编辑器
+apifox-bin                  # API 测试工具
+
+# 办公软件
+feishu-bin                  # 飞书（字节跳动协作工具）
+wps-office                  # WPS Office 办公套件
+ttf-wps-fonts               # WPS 字体包
+libtiff5                    # WPS 依赖的 TIFF 库
+
+# 网盘和网络工具
+aliyunpan-go-bin            # 阿里云盘命令行客户端
+clash-verge-rev-bin         # Clash 代理客户端（GUI）
+clipboard-sync              # 剪贴板同步工具
+
+# 远程控制
+rustdesk-bin                # 开源远程桌面
+
+# 系统美化
+sddm-catppuccin-git         # SDDM 登录界面 Catppuccin 主题
+maplemono-nf-cn-unhinted    # Maple Mono Nerd Font 中文字体

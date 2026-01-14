@@ -1,48 +1,65 @@
-fcitx5
-fcitx5-chinese-addons
-fcitx5-qt
-fcitx5-gtk
-fcitx5-configtool
-fcitx5-material-color
-fcitx5-rime
-noctalia-shell
-ttf-nerd-fonts-symbols
-noto-fonts-emoji
-ttf-font-awesome
-dbeaver
-grim
-slurp
-satty
-wl-clipboard
-cliphist
-papirus-icon-theme
-zed
-docker
-docker-compose
-matugen
-spotify-launcher
-blueman
-oculante
-haruna
-gnome-keyring
-nemo
-fuse2
-xdg-desktop-portal
-xdg-desktop-portal-gtk
-xdg-desktop-portal-wlr
-xdg-desktop-portal-gnome
-pipewire
-wireplumber
-evtest
-file
-ffmpeg
-p7zip
-jq
-poppler
-fd
-ripgrep
-fzf
-zoxide
-imagemagick
-ffmpegthumbnailer
-gnome-calendar
+# 输入法框架
+fcitx5                      # Fcitx5 核心
+fcitx5-chinese-addons       # 中文输入法（拼音等）
+fcitx5-qt                   # Qt 应用支持
+fcitx5-gtk                  # GTK 应用支持
+fcitx5-configtool           # 配置工具
+fcitx5-material-color       # Material 主题
+fcitx5-rime                 # Rime 输入引擎
+
+# 桌面环境
+noctalia-shell              # Shell 主题/扩展
+
+# 字体
+ttf-nerd-fonts-symbols      # 编程字体图标
+noto-fonts-emoji            # Emoji 字体
+ttf-font-awesome            # FontAwesome 图标字体
+
+# 应用程序
+dbeaver                     # 数据库管理工具
+zed                         # 代码编辑器
+docker                      # 容器引擎
+docker-compose              # Docker 编排工具
+spotify-launcher            # Spotify 客户端
+oculante                    # 图片查看器
+haruna                      # 视频播放器
+nemo                        # 文件管理器
+gnome-calendar              # 日历应用
+
+# 截图工具链
+grim                        # Wayland 截图
+slurp                       # 区域选择
+satty                       # 截图标注
+wl-clipboard                # Wayland 剪贴板
+cliphist                    # 剪贴板历史
+
+# 系统组件
+blueman                     # 蓝牙管理器
+gnome-keyring               # 密钥环（保存密码）
+fuse2                       # 文件系统用户空间支持
+matugen                     # 主题生成器
+papirus-icon-theme          # Papirus 图标主题
+
+# XDG 门户（应用沙盒/文件选择器）
+xdg-desktop-portal          # 核心门户
+xdg-desktop-portal-gtk      # GTK 后端
+xdg-desktop-portal-wlr      # wlroots 后端
+xdg-desktop-portal-gnome    # GNOME 后端
+
+# 音频
+pipewire                    # 音频服务器
+wireplumber                 # PipeWire 会话管理器
+
+# 命令行工具
+evtest                      # 输入设备测试
+file                        # 文件类型识别
+ffmpeg                      # 多媒体处理
+p7zip                       # 7z 压缩
+jq                          # JSON 处理
+poppler                     # PDF 工具
+fd                          # 快速文件查找
+ripgrep                     # 快速文本搜索
+fzf                         # 模糊查找
+zoxide                      # 智能 cd
+imagemagick                 # 图片处理
+ffmpegthumbnailer           # 视频缩略图生成
