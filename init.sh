@@ -10,10 +10,14 @@ mkdir -p ~/downloads ~/public ~/pictures ~/documents ~/desktop ~/templates ~/vid
 sudo pacman -Syy
 
 # 安装官方仓库软件包（从 pkglist.txt 读取）
-grep -v '^#\|^$' pkglist.txt | xargs -o sudo pacman -S --needed
+while read -r pkg <&3; do
+    [[ -n "$pkg" ]] && sudo pacman -S --needed "$pkg"
+done 3< pkglist.txt
 
 # 安装 AUR 软件包（从 aurlist.txt 读取）
-grep -v '^#\|^$' aurlist.txt | xargs -o paru -S --needed
+while read -r pkg <&3; do
+    [[ -n "$pkg" ]] && paru -S --needed "$pkg"
+done 3< aurlist.txt
 
 # 删除默认的 Firefox 浏览器（如果已安装）
 pacman -Qi firefox &>/dev/null && sudo pacman -Rns firefox
