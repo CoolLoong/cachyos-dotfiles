@@ -13,3 +13,4 @@ clipboard-sync
 rustdesk-bin
 sddm-catppuccin-git
 maplemono-nf-cn-unhinted
+jetbrains-toolbox
