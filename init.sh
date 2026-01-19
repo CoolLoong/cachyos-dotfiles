@@ -50,7 +50,7 @@ sudo grub-mkconfig -o /boot/grub/grub.cfg
 command -v rustup &>/dev/null || curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 
 # 重启 Fcitx5 输入法
-pkill fcitx5 || true; fcitx5 -rd &
+pkill fcitx5 || true; fcitx5 -rd &>/dev/null &
 
 # 设置图标主题为 Papirus
 gsettings set org.gnome.desktop.interface icon-theme 'Papirus'
