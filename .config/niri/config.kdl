@@ -266,6 +266,11 @@ binds {
         open-floating true
     }
 
+    window-rule {                                                                                                                                                                    
+        match app-id="org.gnome.FileRoller"                                                                                                                                          
+        open-floating true                                                                                                                                                           
+    }  
+
     window-rule {
         geometry-corner-radius 20 // Set every window radius to 20
         clip-to-geometry true

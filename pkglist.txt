@@ -46,3 +46,4 @@ fzf
 zoxide
 imagemagick
 ffmpegthumbnailer
+nemo-fileroller
