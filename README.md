@@ -38,6 +38,11 @@ chmod +x init.sh
 3. 恢复配置文件
 4. 配置系统设置
 
+## 常用命令
+```fish
+sudo snapper create -d "备份快照"
+```
+
 ## 许可证
 
 [MIT](LICENSE)
