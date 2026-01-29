@@ -2,7 +2,7 @@ rime-ice-git
 fcitx5-themes-candlelight
 google-chrome
 visual-studio-code-bin
-apifox-bin
+bruno-bin
 feishu-bin
 wps-office
 ttf-wps-fonts
