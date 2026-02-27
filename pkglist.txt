@@ -13,7 +13,6 @@ dbeaver
 zed
 docker
 docker-compose
-spotify-launcher
 oculante
 haruna
 nemo
