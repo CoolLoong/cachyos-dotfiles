@@ -172,10 +172,10 @@ binds {
 // https://github.com/YaLTeR/niri/wiki/Configuration:-Miscellaneous#spawn-sh-at-startup
 
     spawn-sh-at-startup "/usr/lib/polkit-kde-authentication-agent-1 &" // Polkit
+    spawn-sh-at-startup "qs -c noctalia-shell"
     spawn-sh-at-startup "fcitx5 -d"
     spawn-sh-at-startup "wl-paste --watch cliphist store"
     spawn-at-startup "~/.config/niri/feishu-startup.sh"
-    spawn-at-startup "~/.config/niri/noctalia-startup.sh"
     spawn-at-startup "gnome-keyring-daemon --start --components=secrets,pkcs11"
     //spawn-sh-at-startup "swww-daemon" // Wallpaper daemon
     //spawn-sh-at-startup "swww img /usr/share/wallpapers/cachyos-wallpapers/Skyscraper.png" // Set wallpaper
