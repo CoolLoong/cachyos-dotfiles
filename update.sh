@@ -5,6 +5,7 @@ DOTFILES_DIR="$(cd "$(dirname "$0")" && pwd)"
 usage() {
     echo "用法: $0 [模式]"
     echo "  system    更新系统和所有软件包（默认）"
+    echo "  pkg       仅安装/更新 pkglist.txt 中的软件包（不升级系统）"
     echo "  aur       从 aurlist.txt 安装 AUR 软件包"
     exit 1
 }
@@ -13,8 +14,8 @@ MODE="${1:-system}"
 
 case "$MODE" in
     system)
-        echo "正在更新官方仓库软件包..."
-        sudo pacman -Syu
+        echo "正在更新系统并同步 pkglist.txt 中的软件包..."
+        sudo pacman -Syu --needed - < "$DOTFILES_DIR/pkglist.txt"
 
         if command -v paru &>/dev/null; then
             echo "正在更新 AUR 软件包..."
@@ -29,6 +30,11 @@ case "$MODE" in
         fi
 
         echo "更新完成！"
+        ;;
+    pkg)
+        echo "正在安装/更新 pkglist.txt 中的软件包..."
+        sudo pacman -S --needed - < "$DOTFILES_DIR/pkglist.txt"
+        echo "软件包同步完成！"
         ;;
     aur)
         if ! command -v paru &>/dev/null; then

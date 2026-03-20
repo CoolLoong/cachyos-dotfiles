@@ -201,7 +201,6 @@ reflector
 ripgrep
 rsync
 rtkit
-rustdesk-bin
 s-nail
 satty
 sddm

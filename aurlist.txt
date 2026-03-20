@@ -12,6 +12,7 @@ jetbrains-toolbox
 libtiff5
 maplemono-nf-cn-unhinted
 rime-ice-git
+rustdesk-bin
 sddm-catppuccin-git
 ttf-wps-fonts
 unityhub
