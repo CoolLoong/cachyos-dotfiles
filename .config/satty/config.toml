@@ -3,3 +3,6 @@ early-exit = true
 copy-command = "wl-copy"
 output-filename = "~/Pictures/Screenshots/satty-%Y-%m-%d_%H:%M:%S.png"
 save-after-copy = false
+
+[font]
+family = "Noto Sans CJK SC"

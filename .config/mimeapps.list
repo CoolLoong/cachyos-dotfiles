@@ -1,8 +1,8 @@
 [Default Applications]
 x-scheme-handler/clash=clash-verge.desktop;
 x-scheme-handler/clash-verge=clash-verge.desktop;
-text/x-log=code.desktop
-application/yaml=code.desktop
+text/x-log=dev.zed.Zed.desktop
+application/yaml=dev.zed.Zed.desktop
 text/javascript=code.desktop
 text/plain=dev.zed.Zed.desktop
 application/wps-office.xlsx=wps-office-et.desktop
@@ -30,10 +30,17 @@ application/wps-office.wpss=wps-office-wps.desktop
 application/wps-office.wpso=wps-office-wps.desktop
 application/wps-office.wpt=wps-office-wps.desktop
 application/x-shellscript=dev.zed.Zed.desktop
+x-scheme-handler/jetbrains=jetbrains-toolbox.desktop
+x-scheme-handler/bruno=bruno.desktop
+application/json=dev.zed.Zed.desktop
+text/x-patch=dev.zed.Zed.desktop
+image/png=oculante.desktop
+text/x-chdr=dev.zed.Zed.desktop
+x-scheme-handler/apifox=apifox.desktop
 
 [Added Associations]
-text/x-log=code.desktop;
-application/yaml=code.desktop;
+text/x-log=code.desktop;dev.zed.Zed.desktop;
+application/yaml=code.desktop;dev.zed.Zed.desktop;
 x-scheme-handler/clash=clash-verge.desktop;
 x-scheme-handler/clash-verge=clash-verge.desktop;
 text/javascript=code.desktop;
@@ -49,3 +56,7 @@ application/wps-office.dotx=wps-office-wps.desktop;
 application/wps-office.wpss=wps-office-wps.desktop;
 application/wps-office.wpso=wps-office-wps.desktop;
 application/x-shellscript=dev.zed.Zed.desktop;
+application/json=dev.zed.Zed.desktop;
+text/x-patch=dev.zed.Zed.desktop;
+image/png=oculante.desktop;
+text/x-chdr=dev.zed.Zed.desktop;
