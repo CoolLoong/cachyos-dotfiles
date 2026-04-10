@@ -103,7 +103,7 @@ inetutils
 intel-media-driver
 intel-ucode
 iotop
-iptables-nft
+iptables
 iwd
 jfsutils
 kvantum
@@ -117,6 +117,7 @@ libdvdcss
 libgsf
 libinput-tools
 libopenraw
+librime
 libva-nvidia-driver
 libwnck3
 linux-cachyos
@@ -133,6 +134,7 @@ lvm2
 mako
 man-db
 man-pages
+marisa
 matugen
 mdadm
 meld
@@ -152,7 +154,6 @@ networkmanager
 networkmanager-openvpn
 nfs-utils
 nilfs-utils
-niri
 noctalia-shell
 noto-color-emoji-fontconfig
 noto-fonts
@@ -241,6 +242,7 @@ vlc-plugins-all
 vpl-gpu-rt
 vulkan-intel
 waybar
+wf-recorder
 wget
 which
 wine-cachyos

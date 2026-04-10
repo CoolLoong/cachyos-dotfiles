@@ -37,6 +37,7 @@ text/x-patch=dev.zed.Zed.desktop
 image/png=oculante.desktop
 text/x-chdr=dev.zed.Zed.desktop
 x-scheme-handler/apifox=apifox.desktop
+x-scheme-handler/claude-cli=claude-code-url-handler.desktop
 
 [Added Associations]
 text/x-log=code.desktop;dev.zed.Zed.desktop;

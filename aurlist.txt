@@ -11,6 +11,8 @@ google-chrome
 jetbrains-toolbox
 libtiff5
 maplemono-nf-cn-unhinted
+niri-git
+openai-codex-bin
 rime-ice-git
 rustdesk-bin
 sddm-catppuccin-git

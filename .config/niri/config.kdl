@@ -156,6 +156,7 @@ binds {
 
     // ─── Screenshots ───
     MOD+F1                             { spawn-sh "grim -t ppm -g \"$(slurp -d)\" - | satty -f -"; }
+    MOD+F2                             hotkey-overlay-title="Record GIF: wf-recorder" { spawn-sh "~/.config/niri/toggle-gif-recording.sh"; }
 
     // ─── Emergency Escape Key ───
     // Use this when a fullscreen app blocks your keybinds.
