@@ -81,6 +81,7 @@ ffmpegthumbnailer
 flatpak
 fsarchiver
 fuse2
+gifsicle
 git
 glances
 gnome-calendar
@@ -136,6 +137,7 @@ man-db
 man-pages
 marisa
 matugen
+maven
 mdadm
 meld
 mesa-utils
@@ -154,6 +156,7 @@ networkmanager
 networkmanager-openvpn
 nfs-utils
 nilfs-utils
+niri-git
 noctalia-shell
 noto-color-emoji-fontconfig
 noto-fonts

@@ -11,12 +11,13 @@ google-chrome
 jetbrains-toolbox
 libtiff5
 maplemono-nf-cn-unhinted
-niri-git
+motion-retarget-tool
+numi-bin
 openai-codex-bin
+redisinsight-bin
 rime-ice-git
 rustdesk-bin
 sddm-catppuccin-git
 ttf-wps-fonts
-unityhub
 visual-studio-code-bin
 windterm-bin
