@@ -10,6 +10,7 @@ feishu-bin
 google-chrome
 jetbrains-toolbox
 libtiff5
+linuxqq-nt
 maplemono-nf-cn-unhinted
 motion-retarget-tool
 numi-bin
@@ -18,6 +19,7 @@ redisinsight-bin
 rime-ice-git
 rustdesk-bin
 sddm-catppuccin-git
+termua-bin
 ttf-wps-fonts
 visual-studio-code-bin
 windterm-bin

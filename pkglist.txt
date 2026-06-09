@@ -42,11 +42,13 @@ cachyos-wallpapers
 cachyos-zsh-config
 cantarell-fonts
 capitaine-cursors
+chmlib
 chwd
 cliphist
 cpio
 cpupower
 cryptsetup
+cuda
 dbeaver
 device-mapper
 dhclient
@@ -104,6 +106,7 @@ inetutils
 intel-media-driver
 intel-ucode
 iotop
+iperf3
 iptables
 iwd
 jfsutils
@@ -157,6 +160,7 @@ networkmanager-openvpn
 nfs-utils
 nilfs-utils
 niri-git
+nmap
 noctalia-shell
 noto-color-emoji-fontconfig
 noto-fonts
@@ -253,6 +257,7 @@ winetricks
 wireless-regdb
 wireplumber
 wl-clipboard
+wl-mirror
 wlogout
 wmctrl
 wob
