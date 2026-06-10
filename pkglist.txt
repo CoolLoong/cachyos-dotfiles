@@ -4,7 +4,6 @@ alacritty
 alsa-firmware
 alsa-plugins
 alsa-utils
-awesome-terminal-fonts
 base
 base-devel
 bash-completion
@@ -40,7 +39,6 @@ cachyos-v3-mirrorlist
 cachyos-v4-mirrorlist
 cachyos-wallpapers
 cachyos-zsh-config
-cantarell-fonts
 capitaine-cursors
 chmlib
 chwd
@@ -162,10 +160,14 @@ nilfs-utils
 niri-git
 nmap
 noctalia-shell
+otf-font-awesome
+cantarell-fonts
 noto-color-emoji-fontconfig
 noto-fonts
 noto-fonts-cjk
 noto-fonts-emoji
+woff2-font-awesome
+ttf-nerd-fonts-symbols
 nss-mdns
 ntp
 nvidia-prime
@@ -178,7 +180,6 @@ oculante
 opencl-nvidia
 openssh
 os-prober
-otf-font-awesome
 pacman-contrib
 pamixer
 papirus-icon-theme
@@ -229,15 +230,13 @@ sysstat
 testdisk
 texinfo
 tree
-ttf-bitstream-vera
+awesome-terminal-fonts
+powerline-fonts
 ttf-dejavu
 ttf-fantasque-nerd
 ttf-fira-sans
 ttf-hack
 ttf-liberation
-ttf-meslo-nerd
-ttf-nerd-fonts-symbols
-ttf-opensans
 ufw
 unrar
 unzip
@@ -261,7 +260,6 @@ wl-mirror
 wlogout
 wmctrl
 wob
-woff2-font-awesome
 wofi
 wpa_supplicant
 wps-office

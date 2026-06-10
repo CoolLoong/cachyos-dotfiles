@@ -11,7 +11,7 @@ google-chrome
 jetbrains-toolbox
 libtiff5
 linuxqq-nt
-maplemono-nf-cn-unhinted
+maplemono-nf-cn
 motion-retarget-tool
 numi-bin
 openai-codex-bin
