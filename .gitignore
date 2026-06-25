@@ -8,3 +8,5 @@
 .local/share/fcitx5/rime/build/**
 .local/share/fcitx5/rime/installation.yaml
 /niri-git/
+.claude
+.omc
