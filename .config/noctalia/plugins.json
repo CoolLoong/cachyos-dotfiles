@@ -4,9 +4,18 @@
             "enabled": true,
             "name": "Noctalia Plugins",
             "url": "https://github.com/noctalia-dev/noctalia-plugins"
+        },
+        {
+            "enabled": true,
+            "name": "OHMCFXG",
+            "url": "https://github.com/OHMCFXG/noctalia-plugins"
         }
     ],
     "states": {
+        "31963b:mpris-lyrics": {
+            "enabled": true,
+            "sourceUrl": "https://github.com/OHMCFXG/noctalia-plugins"
+        }
     },
-    "version": 1
+    "version": 2
 }
