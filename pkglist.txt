@@ -102,6 +102,7 @@ haveged
 hdparm
 hwdetect
 hwinfo
+incus
 inetutils
 intel-media-driver
 intel-ucode
@@ -151,6 +152,7 @@ modemmanager
 mtools
 nano
 nano-syntax-highlighting
+nasm
 nbd
 nemo
 nemo-fileroller

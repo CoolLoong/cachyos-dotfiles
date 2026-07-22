@@ -156,7 +156,33 @@
             ],
             "right": [
                 {
-                    "id": "plugin:31963b:mpris-lyrics"
+                    "contextLines": 1,
+                    "defaultSettings": {
+                        "barHideWhenIdle": true,
+                        "barMaxWidth": 180,
+                        "barWidthMode": "adaptive",
+                        "lyricAdvanceMs": 300,
+                        "playerFilterList": [
+                            "firefox",
+                            "chrome",
+                            "zen"
+                        ],
+                        "playerFilterMode": "blacklist",
+                        "preferPlayerLyrics": true,
+                        "primaryLyricsSource": "netease",
+                        "requestTimeoutMs": 5000,
+                        "showBarStatusDot": true
+                    },
+                    "fontSize": 22,
+                    "hideWhenIdle": false,
+                    "id": "plugin:31963b:mpris-lyrics",
+                    "inactiveOpacity": 0.56,
+                    "lineSpacing": 8,
+                    "roundedCorners": true,
+                    "showBackground": true,
+                    "showTrackMeta": true,
+                    "textAlign": "center",
+                    "width": 520
                 },
                 {
                     "compactMode": false,
@@ -487,7 +513,7 @@
         "bluetoothRssiPollIntervalMs": 10000,
         "bluetoothRssiPollingEnabled": true,
         "disableDiscoverability": false,
-        "networkPanelView": "ethernet",
+        "networkPanelView": "wifi",
         "wifiDetailsViewMode": "list"
     },
     "nightLight": {
