@@ -85,6 +85,7 @@ fsarchiver
 fuse2
 gifsicle
 git
+github-cli
 glances
 gnome-calendar
 gnome-keyring
@@ -170,6 +171,7 @@ noto-fonts-cjk
 noto-fonts-emoji
 nss-mdns
 ntp
+nvidia-container-toolkit
 nvidia-prime
 nvidia-settings
 nvidia-utils

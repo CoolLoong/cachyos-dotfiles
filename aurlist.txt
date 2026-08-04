@@ -3,6 +3,7 @@ apifox-bin
 bmaptool
 bruno-bin
 clash-verge-rev-bin
+claudebox
 clipboard-sync
 debtap
 fcitx5-themes-candlelight
