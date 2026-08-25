@@ -33,7 +33,7 @@ input {
 output "PNP(AOC) 24G2W1G4 0x0001A552" {
     mode "1920x1080@144.001"
 }
-output "AU Optronics 0x07B2 Unknown" {
+output "China Star Optoelectronics Technology Co., Ltd MNG007DA6-1 Unknown" {
     mode "2560x1600@240.014"
 }
 output "Xiaomi Corporation Mi Monitor 5640810193861" {
