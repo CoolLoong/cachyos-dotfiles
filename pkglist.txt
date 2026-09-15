@@ -42,6 +42,7 @@ cachyos-wallpapers
 cachyos-zsh-config
 cantarell-fonts
 capitaine-cursors
+chatgpt-desktop-bin
 chmlib
 chwd
 claude-code
@@ -164,6 +165,7 @@ networkmanager
 networkmanager-openvpn
 nfs-utils
 nilfs-utils
+niri-git
 nmap
 noctalia-shell
 nodejs-lts-jod
@@ -229,7 +231,6 @@ slurp
 smartmontools
 snapper
 sof-firmware
-spotify-launcher
 sshpass
 strace
 sudo
@@ -249,6 +250,7 @@ ttf-fira-sans
 ttf-hack
 ttf-liberation
 ttf-nerd-fonts-symbols
+typst
 ufw
 unrar
 unzip
