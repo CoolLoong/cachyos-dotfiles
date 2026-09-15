@@ -164,7 +164,6 @@ networkmanager
 networkmanager-openvpn
 nfs-utils
 nilfs-utils
-niri-git
 nmap
 noctalia-shell
 nodejs-lts-jod

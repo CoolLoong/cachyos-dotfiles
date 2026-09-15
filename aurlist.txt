@@ -25,6 +25,7 @@ libdart
 libtiff5
 linuxqq-nt
 maplemono-nf-cn
+niri-git
 numi-bin
 octomap
 ogre-1.9
