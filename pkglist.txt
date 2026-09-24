@@ -83,10 +83,12 @@ fcitx5-qt
 fcitx5-rime
 ffmpegthumbnailer
 flatpak
+freecad
 fsarchiver
 fuse2
 gifsicle
 git
+git-lfs
 github-cli
 glances
 gnome-calendar
@@ -288,6 +290,7 @@ xfsprogs
 xl2tpd
 xorg-server
 xorg-xdpyinfo
+xorg-xhost
 xorg-xinit
 xorg-xinput
 xorg-xkill

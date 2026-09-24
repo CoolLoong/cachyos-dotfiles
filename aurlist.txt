@@ -1,6 +1,7 @@
 9router-local
 aliyunpan-go-bin
 apifox-bin
+blender-bin
 bmaptool
 bruno-bin
 clash-verge-rev-bin
@@ -22,6 +23,7 @@ octomap
 ogre-1.9
 ogre-docs-1.9
 openai-codex-bin
+python-rocker-git
 redisinsight-bin
 rime-ice-git
 ruby2.7
