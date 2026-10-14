@@ -19,7 +19,7 @@ case "$MODE" in
 
         if command -v paru &>/dev/null; then
             echo "正在更新 AUR 软件包..."
-            paru -Sua
+            paru -Sua --skipreview --noconfirm
         else
             echo "警告: 未安装 paru，跳过 AUR 更新"
         fi
@@ -43,7 +43,7 @@ case "$MODE" in
         fi
         echo "正在从 aurlist.txt 安装 AUR 软件包..."
         while read -r pkg <&3; do
-            [[ -n "$pkg" ]] && paru -S --needed "$pkg"
+            [[ -n "$pkg" ]] && paru -S --needed --skipreview --noconfirm "$pkg"
         done 3< "$DOTFILES_DIR/aurlist.txt"
         echo "AUR 软件包安装完成！"
         ;;
