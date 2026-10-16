@@ -45,6 +45,8 @@ x-scheme-handler/http=com.google.Chrome.desktop
 x-scheme-handler/https=com.google.Chrome.desktop
 x-scheme-handler/about=com.google.Chrome.desktop
 x-scheme-handler/unknown=com.google.Chrome.desktop
+text/csv=wps-office-et.desktop
+x-scheme-handler/codeg=codeg-handler.desktop
 
 [Added Associations]
 text/x-log=code.desktop;dev.zed.Zed.desktop;
@@ -68,3 +70,4 @@ application/json=dev.zed.Zed.desktop;
 text/x-patch=dev.zed.Zed.desktop;
 image/png=oculante.desktop;
 text/x-chdr=dev.zed.Zed.desktop;
+text/csv=wps-office-et.desktop;

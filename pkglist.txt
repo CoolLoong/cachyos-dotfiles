@@ -117,6 +117,9 @@ iperf3
 iptables
 iwd
 jfsutils
+kicad
+kicad-library
+kicad-library-3d
 kvantum
 kvantum-theme-nordic-git
 less
@@ -281,7 +284,6 @@ wob
 woff2-font-awesome
 wofi
 wpa_supplicant
-wps-office
 xdg-desktop-portal-gnome
 xdg-desktop-portal-wlr
 xdg-user-dirs

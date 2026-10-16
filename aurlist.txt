@@ -1,4 +1,3 @@
-9router-local
 aliyunpan-go-bin
 apifox-bin
 blender-bin
@@ -35,3 +34,4 @@ ttf-wps-fonts
 visual-studio-code-bin
 waydroid-script-git
 windterm-bin
+wps-office
