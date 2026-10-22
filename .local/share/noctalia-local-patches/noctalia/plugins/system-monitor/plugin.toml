@@ -1,0 +1,15 @@
+id = "local/system-monitor"
+name = "系统监控"
+version = "1.0.0"
+plugin_api = 14
+author = "local"
+license = "MIT"
+icon = "cpu"
+description = "在一个整体控件中显示 CPU、温度和内存。"
+
+[[widget]]
+id = "summary"
+entry = "widget.luau"
+
+[widget.actions]
+left = "panel-toggle control-center system"

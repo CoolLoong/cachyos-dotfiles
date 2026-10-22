@@ -30,7 +30,6 @@ cachyos-kernel-manager
 cachyos-keyring
 cachyos-micro-settings
 cachyos-mirrorlist
-cachyos-niri-settings
 cachyos-nord-gtk-theme-git
 cachyos-packageinstaller
 cachyos-plymouth-bootanimation
@@ -154,6 +153,7 @@ maven
 mdadm
 meld
 mesa-utils
+meson
 micro
 mingw-w64-gcc
 mkinitcpio
@@ -163,15 +163,15 @@ nano
 nano-syntax-highlighting
 nasm
 nbd
-nemo
-nemo-fileroller
 netctl
 networkmanager
 networkmanager-openvpn
 nfs-utils
 nilfs-utils
 niri-git
+nlohmann-json
 nmap
+noctalia
 noctalia-shell
 nodejs-lts-jod
 noto-color-emoji-fontconfig
@@ -237,6 +237,7 @@ smartmontools
 snapper
 sof-firmware
 sshpass
+stb
 strace
 sudo
 swaybg
@@ -269,6 +270,7 @@ vpl-gpu-rt
 vulkan-intel
 waybar
 waydroid
+wayland-protocols
 wf-recorder
 wget
 which
@@ -282,7 +284,6 @@ wlogout
 wmctrl
 wob
 woff2-font-awesome
-wofi
 wpa_supplicant
 xdg-desktop-portal-gnome
 xdg-desktop-portal-wlr

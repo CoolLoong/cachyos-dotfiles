@@ -48,11 +48,11 @@ binds {
 
     // ─── Applications ───
     MOD+RETURN                          hotkey-overlay-title="Open Terminal: alacritty" { spawn-sh "alacritty"; }
-    MOD+SPACE                           hotkey-overlay-title="Open App Launcher: wofi" { spawn-sh "wofi"; }
+    MOD+SPACE                           hotkey-overlay-title="Open App Launcher: Noctalia" { spawn-sh "noctalia-patched msg panel-toggle launcher"; }
     MOD+ALT+L                           hotkey-overlay-title="Lock Screen: swaylock" { spawn-sh "swaylock"; }
     
     // Please choose your own file manager
-    MOD+E                             hotkey-overlay-title="File Manager: Nautilus" { spawn-sh "nautilus"; }
+    MOD+E                             hotkey-overlay-title="File Manager: Tern" { spawn-sh "tern"; }
 
     // ─── Audio Controls ───
     // Example volume keys mappings for PipeWire & WirePlumber.
@@ -173,7 +173,7 @@ binds {
 // https://github.com/YaLTeR/niri/wiki/Configuration:-Miscellaneous#spawn-sh-at-startup
 
     spawn-sh-at-startup "/usr/lib/polkit-kde-authentication-agent-1 &" // Polkit
-    spawn-sh-at-startup "qs -c noctalia-shell"
+    spawn-sh-at-startup "if command -v noctalia-patched >/dev/null 2>&1; then exec noctalia-patched; else exec noctalia; fi"
     spawn-sh-at-startup "fcitx5 -d"
     spawn-sh-at-startup "wl-paste --watch cliphist store"
     spawn-at-startup "~/.config/niri/feishu-startup.sh"
@@ -295,3 +295,14 @@ binds {
     hotkey-overlay {
         skip-at-startup
     }
+
+window-rule {
+    match app-id="^dev[.]noctalia[.]Noctalia$" title="^Noctalia (设置|Settings)$"
+    open-floating true
+    open-focused true
+    default-column-width { fixed 1020; }
+    default-window-height { fixed 720; }
+}
+
+// Tern portal file chooser: floating dialogs only.
+include "/usr/share/tern/tern-file-chooser.kdl"

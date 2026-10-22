@@ -30,6 +30,7 @@ rustdesk-bin
 sddm-catppuccin-git
 spotify
 termua-bin
+tern
 ttf-wps-fonts
 visual-studio-code-bin
 waydroid-script-git

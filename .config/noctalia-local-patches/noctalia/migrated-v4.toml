@@ -1,0 +1,283 @@
+
+["accessibility"]
+"ui_scale" = 1
+
+["shell"]
+"font_family" = "Sans Serif"
+"avatar_path" = "/home/wing/pictures/icon.jpeg"
+"corner_radius_scale" = 1
+"card_borders" = false
+"button_borders" = false
+"popup_borders" = false
+"clipboard_enabled" = false
+"clipboard_auto_paste" = "off"
+
+["shell"."animation"]
+"enabled" = true
+"speed" = 1
+
+["shell"."shadow"]
+"direction" = "down_right"
+
+["shell"."panel"]
+"borders" = false
+"shadow" = true
+"transparency_mode" = "soft"
+"launcher_placement" = "floating"
+"launcher_position" = "center"
+"control_center_placement" = "attached"
+"wallpaper_placement" = "attached"
+"session_placement" = "floating"
+"session_position" = "center"
+"open_near_click_control_center" = true
+
+["shell"."launcher"]
+"app_grid" = true
+"categories" = true
+"sort_by_usage" = true
+"auto_paste" = "off"
+
+["shell"."mpris"]
+"blacklist" = []
+
+["theme"]
+"mode" = "dark"
+"source" = "wallpaper"
+"custom_palette" = "V4-Restored"
+"wallpaper_scheme" = "m3-tonal-spot"
+"sync_color_scheme" = true
+
+["theme"."templates"]
+"enable_builtin_templates" = false
+"enable_community_templates" = false
+
+["bar"]
+
+["bar"."default"]
+"position" = "top"
+"enabled" = true
+"auto_hide" = false
+"reserve_space" = true
+"thickness" = 31
+"background_opacity" = 0.93
+"margin_ends" = 0
+"margin_edge" = 0
+"padding" = 2
+"widget_spacing" = 0
+"font_scale" = 1
+"border_width" = 0.0
+"radius_top_left" = 6
+"radius_top_right" = 6
+"radius_bottom_left" = 6
+"radius_bottom_right" = 6
+"concave_edge_corners" = false
+"capsule" = true
+"capsule_fill" = "surface_variant"
+"capsule_opacity" = 1
+"capsule_thickness" = 0.96
+"capsule_padding" = 6.0
+"start" = ["launcher", "clock", "weather", "system_monitor", "active_window"]
+"center" = ["workspaces"]
+"end" = ["lyrics", "media", "tray", "notifications", "battery", "volume", "brightness", "bluetooth", "network", "control-center"]
+"capsule_group" = []
+
+["widget"]
+
+["widget"."launcher"]
+"type" = "launcher"
+"glyph" = "rocket"
+"color" = "on_surface"
+
+["widget"."clock"]
+capsule_padding = 12.0
+"type" = "clock"
+"format" = "%H:%M %a, %b %d"
+"vertical_format" = "%H %M - %d %m"
+"tooltip_format" = "%H:%M %a, %b %d"
+
+["widget"."active_window"]
+capsule_padding = 12.0
+"type" = "active_window"
+"min_length" = 0.0
+"max_length" = 145.0
+"display" = "icon_and_text"
+"title_scroll" = "on_hover"
+"show_empty_label" = false
+
+["widget"."workspaces"]
+"type" = "workspaces"
+"style" = "regular"
+"show_labels" = true
+"show_icons" = false
+"label_source" = "id"
+"max_label_chars" = 2
+"pill_scale" = 1.0
+"font_weight" = 700
+"labels_only_when_occupied" = true
+"hide_when_empty" = false
+"show_all_outputs" = false
+"focused_color" = "primary"
+"occupied_color" = "secondary"
+"empty_color" = "secondary"
+
+["widget"."lyrics"]
+"type" = "0x1ce/mpris-lyrics:bar"
+"barMaxWidth" = 300
+"barWidthMode" = "adaptive"
+"barHideWhenIdle" = true
+"showBarStatusDot" = true
+"textAlign" = "center"
+
+["widget"."media"]
+"type" = "media"
+"min_length" = 0.0
+"max_length" = 200.0
+"artist_first" = true
+"hide_album_art" = false
+"title_scroll" = "on_hover"
+"hide_when_no_media" = true
+"hide_when_idle" = false
+
+["widget"."tray"]
+drawer_item_size = 20
+"type" = "tray"
+"drawer" = true
+"hide_passive" = false
+"pinned" = []
+"hidden" = []
+
+["widget"."notifications"]
+"type" = "notifications"
+"hide_when_no_unread" = false
+
+["widget"."battery"]
+"type" = "battery"
+"display_mode" = "glyph"
+"show_label" = false
+"hide_when_plugged" = false
+
+["widget"."volume"]
+"type" = "volume"
+"show_label" = false
+
+["widget"."volume"."actions"]
+"middle" = "exec pwvucontrol || pavucontrol"
+
+["widget"."brightness"]
+"type" = "brightness"
+"show_label" = false
+
+["widget"."bluetooth"]
+"type" = "bluetooth"
+"show_label" = false
+
+["widget"."network"]
+"type" = "network"
+"show_label" = false
+
+["widget"."control-center"]
+"type" = "control-center"
+"glyph" = "noctalia"
+"color" = "on_surface"
+
+["wallpaper"]
+"enabled" = true
+"directory" = "/home/wing/pictures/wallpapers"
+"fill_mode" = "crop"
+"fill_color" = "#000000"
+"transition_duration" = 1500
+"edge_smoothness" = 0.05
+
+["wallpaper"."default"]
+"path" = "/home/wing/pictures/wallpapers/pixel-art-river-landscape-illustration.jpg"
+
+["wallpaper"."automation"]
+"enabled" = false
+"interval_seconds" = 300
+"order" = "random"
+
+["dock"]
+"enabled" = false
+
+["desktop_widgets"]
+"enabled" = false
+
+["weather"]
+"enabled" = true
+"unit" = "metric"
+"effects" = true
+
+["location"]
+"auto_locate" = false
+"address" = "Ningbo, Zhejiang, China"
+
+["control_center"]
+"shortcuts" = [{ "type" = "wifi" }, { "type" = "bluetooth" }, { "type" = "wallpaper" }, { "type" = "notification" }, { "type" = "power_profile" }, { "type" = "caffeine" }]
+
+["audio"]
+"enable_overdrive" = false
+"enable_volume_sounds" = false
+"enable_notification_sounds" = false
+"sound_volume" = 0.5
+
+["battery"]
+"warning_threshold" = 20
+
+["brightness"]
+"enable_ddcutil" = false
+"sync_all_monitors" = false
+
+["notification"]
+"position" = "top_right"
+"layer" = "overlay"
+"background_opacity" = 1.0
+"border" = false
+"keep_dismissed_in_history" = false
+
+["osd"]
+"enabled" = true
+"position" = "top_right"
+"background_opacity" = 1.0
+"border" = false
+"hide_delay_ms" = 2000
+
+["lockscreen"]
+"blur_intensity" = 0.0
+"tint_intensity" = 0.0
+
+["plugins"]
+"auto_update" = "none"
+
+["plugin_settings"]
+
+["plugin_settings"."0x1ce/mpris-lyrics"]
+"playerFilterMode" = "blacklist"
+"playerFilterList" = ["firefox", "chrome", "zen"]
+"primaryLyricsSource" = "lrclib"
+"preferPlayerLyrics" = true
+"requestTimeoutMs" = 3000
+"lyricAdvanceMs" = 200
+
+[widget.workspaces.actions]
+scroll_up = "workspace-switch prev"
+scroll_down = "workspace-switch next"
+
+[widget.weather]
+capsule_padding = 12.0
+type = "weather"
+show_condition = false
+show_temperature = true
+max_length = 120
+
+[widget.lyrics.actions]
+left = "settings-open-plugin 0x1ce/mpris-lyrics"
+
+[widget.system_monitor]
+type = "local/system-monitor:summary"
+font_family = "monospace"
+capsule = true
+capsule_padding = 12.0
+
+[osd.kinds]
+media = false
+keyboard_layout = false
