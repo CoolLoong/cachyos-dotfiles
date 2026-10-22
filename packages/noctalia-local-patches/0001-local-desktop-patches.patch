@@ -1,0 +1,1164 @@
+diff --git a/VERSION b/VERSION
+index 03f488b..83ac5a3 100644
+--- a/VERSION
++++ b/VERSION
+@@ -1 +1 @@
+-5.3.0
++5.3.0+local.2
+diff --git a/assets/translations/en.json b/assets/translations/en.json
+index b9de2db..ef7b622 100644
+--- a/assets/translations/en.json
++++ b/assets/translations/en.json
+@@ -1,4 +1,16 @@
+ {
++  "local-patches": {
++    "copy-ip": "Copy IP address",
++    "copy-failed": "Could not copy to the clipboard.",
++    "wired": "Wired network",
++    "prefer-wired": "Prefer wired",
++    "unmanaged": "Not managed by NetworkManager",
++    "no-cable": "Network cable unplugged",
++    "connected": "Connected",
++    "connecting": "Connecting…",
++    "disconnected": "Disconnected",
++    "wifi-autoconnect": "Automatically connect to saved Wi-Fi networks"
++  },
+   "auth": {
+     "fingerprint": {
+       "disconnected": "Fingerprint reader disconnected",
+@@ -4405,6 +4417,10 @@
+           "description": "Number of tray icons per row in the drawer panel",
+           "label": "Drawer Columns"
+         },
++        "drawer-item-margin": {
++          "description": "Space around each drawer icon in logical pixels",
++          "label": "Drawer Icon Margin"
++        },
+         "drawer-item-size": {
+           "description": "Size of tray icons inside the drawer panel in pixels",
+           "label": "Drawer Icon Size"
+diff --git a/assets/translations/zh-Hans.json b/assets/translations/zh-Hans.json
+index 43fd921..40043ad 100644
+--- a/assets/translations/zh-Hans.json
++++ b/assets/translations/zh-Hans.json
+@@ -1,4 +1,16 @@
+ {
++  "local-patches": {
++    "copy-ip": "复制 IP 地址",
++    "copy-failed": "无法写入剪贴板。",
++    "wired": "有线网络",
++    "prefer-wired": "有线优先",
++    "unmanaged": "未由 NetworkManager 管理",
++    "no-cable": "网线未连接",
++    "connected": "已连接",
++    "connecting": "正在连接…",
++    "disconnected": "未连接",
++    "wifi-autoconnect": "自动连接已保存的 Wi-Fi"
++  },
+   "auth": {
+     "fingerprint": {
+       "disconnected": "指纹识别器已断开连接",
+@@ -4283,6 +4295,10 @@
+           "description": "抽屉面板中每行显示的托盘图标数量",
+           "label": "抽屉列数"
+         },
++        "drawer-item-margin": {
++          "description": "托盘内每个图标四周的留白，单位为逻辑像素",
++          "label": "托盘图标外边距"
++        },
+         "drawer-item-size": {
+           "description": "抽屉面板中托盘图标的大小（像素）",
+           "label": "抽屉图标大小"
+diff --git a/meson.build b/meson.build
+index ad6973b..75d3137 100644
+--- a/meson.build
++++ b/meson.build
+@@ -488,6 +488,7 @@ _noctalia_sources = files(
+   'src/dbus/network/iwd_service.cpp',
+   'src/dbus/network/network_display.cpp',
+   'src/dbus/network/network_manager_service.cpp',
++  'src/dbus/network/network_device_details.cpp',
+   'src/dbus/network/network_secret_agent.cpp',
+   'src/dbus/network/wpa_supplicant_service.cpp',
+   'src/dbus/polkit/polkit_agent.cpp',
+diff --git a/src/dbus/network/inetwork_service.h b/src/dbus/network/inetwork_service.h
+index 3fe988e..62dcb5b 100644
+--- a/src/dbus/network/inetwork_service.h
++++ b/src/dbus/network/inetwork_service.h
+@@ -30,6 +30,15 @@ public:
+   [[nodiscard]] virtual const std::vector<AccessPointInfo>& accessPoints() const noexcept = 0;
+   [[nodiscard]] virtual const std::vector<VpnConnectionInfo>& vpnConnections() const noexcept = 0;
+ 
++  [[nodiscard]] virtual const std::vector<WiredDeviceInfo>& wiredDevices() const noexcept {
++    static const std::vector<WiredDeviceInfo> empty;
++    return empty;
++  }
++  virtual void refreshDeviceDetails() {}
++  virtual void setWiredDeviceActive(const std::string&, bool) {}
++  [[nodiscard]] virtual bool wifiAutoconnect(const std::string&) const { return true; }
++  virtual void setWifiAutoconnect(const std::string&, bool) {}
++  virtual void preferWiredConnections() {}
+   virtual void requestScan() = 0;
+   virtual bool activateAccessPoint(const AccessPointInfo& ap) = 0;
+   virtual bool activateAccessPoint(const AccessPointInfo& ap, const std::string& psk) = 0;
+diff --git a/src/dbus/network/local_network_policy.h b/src/dbus/network/local_network_policy.h
+new file mode 100644
+index 0000000..9a58cdd
+--- /dev/null
++++ b/src/dbus/network/local_network_policy.h
+@@ -0,0 +1,24 @@
++#pragma once
++
++#include <cstdint>
++#include <map>
++#include <sdbus-c++/sdbus-c++.h>
++#include <string>
++
++namespace local_network_policy {
++  using Settings = std::map<std::string, std::map<std::string, sdbus::Variant>>;
++
++  inline void setAutoconnect(Settings& settings, bool enabled) {
++    settings["connection"]["autoconnect"] = sdbus::Variant{enabled};
++  }
++
++  inline void preferWired(Settings& settings, bool wired) {
++    const std::int64_t metric = wired ? 100 : 600;
++    settings["ipv4"]["route-metric"] = sdbus::Variant{metric};
++    if (const auto ipv6 = settings.find("ipv6"); ipv6 != settings.end()) {
++      const auto method = ipv6->second.find("method");
++      if (method != ipv6->second.end() && method->second.get<std::string>() != "disabled")
++        ipv6->second["route-metric"] = sdbus::Variant{metric};
++    }
++  }
++}
+diff --git a/src/dbus/network/network_device_details.cpp b/src/dbus/network/network_device_details.cpp
+new file mode 100644
+index 0000000..eb40599
+--- /dev/null
++++ b/src/dbus/network/network_device_details.cpp
+@@ -0,0 +1,222 @@
++#include "dbus/network/network_device_details.h"
++
++#include "core/log.h"
++#include "dbus/network/local_network_policy.h"
++#include "dbus/system_bus.h"
++#include "notification/notifications.h"
++
++#include <algorithm>
++#include <functional>
++#include <optional>
++#include <utility>
++
++namespace {
++  constexpr Logger kLog("network-patches");
++  const sdbus::ServiceName kService{"org.freedesktop.NetworkManager"};
++  constexpr auto kProperties = "org.freedesktop.DBus.Properties";
++  constexpr auto kDevice = "org.freedesktop.NetworkManager.Device";
++  constexpr auto kNm = "org.freedesktop.NetworkManager";
++  constexpr auto kConnection = "org.freedesktop.NetworkManager.Settings.Connection";
++  using Properties = std::map<std::string, sdbus::Variant>;
++  using Proxy = std::shared_ptr<sdbus::IProxy>;
++
++  template <typename T> T property(const Properties& values, const std::string& key, T fallback = {}) {
++    const auto it = values.find(key);
++    if (it == values.end()) return fallback;
++    try { return it->second.get<T>(); } catch (const sdbus::Error&) { return fallback; }
++  }
++
++  void getProperties(SystemBus& bus, const std::string& path, const std::string& interface,
++                     std::function<void(Properties)> done) {
++    try {
++      Proxy proxy = sdbus::createProxy(bus.connection(), kService, sdbus::ObjectPath{path});
++      proxy->callMethodAsync("GetAll").onInterface(kProperties).withArguments(interface)
++          .uponReplyInvoke([proxy, done](std::optional<sdbus::Error> error, Properties values) {
++            done(error ? Properties{} : std::move(values));
++          });
++    } catch (const sdbus::Error&) { done({}); }
++  }
++
++  void reportError(const sdbus::Error& error) {
++    kLog.warn("NetworkManager request failed: {}", error.what());
++    notify::error("NetworkManager", "网络设置失败 / Network request failed", error.getMessage());
++  }
++}
++
++NetworkDeviceDetails::NetworkDeviceDetails(SystemBus& bus)
++    : m_bus(bus), m_lifetime(std::make_shared<int>(0)) {}
++NetworkDeviceDetails::~NetworkDeviceDetails() { m_lifetime.reset(); }
++
++void NetworkDeviceDetails::refresh() {
++  refreshProfiles();
++  if (m_devicesPending) return;
++  m_devicesPending = true;
++  const std::weak_ptr<int> lifetime = m_lifetime;
++  try {
++    Proxy proxy = sdbus::createProxy(m_bus.connection(), kService, sdbus::ObjectPath{"/org/freedesktop/NetworkManager"});
++    proxy->callMethodAsync("GetDevices").onInterface(kNm)
++        .uponReplyInvoke([this, lifetime, proxy](std::optional<sdbus::Error> error, std::vector<sdbus::ObjectPath> paths) {
++          if (lifetime.expired()) return;
++          if (error || paths.empty()) {
++            m_devices.clear(); m_devicesPending = false; return;
++          }
++          struct Pending { std::size_t count; std::vector<WiredDeviceInfo> devices; };
++          auto pending = std::make_shared<Pending>();
++          pending->count = paths.size();
++          auto finish = [this, lifetime, pending]() {
++            if (lifetime.expired() || --pending->count != 0) return;
++            std::ranges::sort(pending->devices, {}, &WiredDeviceInfo::interfaceName);
++            m_devices = std::move(pending->devices); m_devicesPending = false;
++          };
++          for (const auto& path : paths) {
++            const std::string devicePath{path};
++            getProperties(m_bus, devicePath, kDevice, [this, lifetime, pending, finish, devicePath](Properties properties) {
++              if (lifetime.expired()) return;
++              const auto udi = property<std::string>(properties, "Udi");
++              if (property<std::uint32_t>(properties, "DeviceType") != 1U
++                  || udi.starts_with("/sys/devices/virtual/")
++                  || (property<std::uint32_t>(properties, "Capabilities") & 4U) != 0U) { finish(); return; }
++              auto row = std::make_shared<WiredDeviceInfo>();
++              row->path = devicePath;
++              row->interfaceName = property<std::string>(properties, "Interface");
++              row->state = property<std::uint32_t>(properties, "State");
++              row->autoconnect = property<bool>(properties, "Autoconnect", true);
++              row->managed = property<bool>(properties, "Managed", true);
++              const auto ipPath = property<sdbus::ObjectPath>(properties, "Ip4Config", sdbus::ObjectPath{"/"});
++              getProperties(m_bus, devicePath, "org.freedesktop.NetworkManager.Device.Wired",
++                  [this, lifetime, pending, finish, row, ipPath](Properties wired) {
++                    if (lifetime.expired()) return;
++                    row->carrier = property<bool>(wired, "Carrier");
++                    row->speedMbps = property<std::uint32_t>(wired, "Speed");
++                    row->macAddress = property<std::string>(wired, "HwAddress");
++                    if (ipPath == sdbus::ObjectPath{"/"}) { pending->devices.push_back(*row); finish(); return; }
++                    getProperties(m_bus, std::string(ipPath), "org.freedesktop.NetworkManager.IP4Config",
++                        [lifetime, pending, finish, row](Properties ip) {
++                          if (lifetime.expired()) return;
++                          auto addresses = property<std::vector<Properties>>(ip, "AddressData");
++                          if (!addresses.empty()) row->ipv4 = property<std::string>(addresses.front(), "address");
++                          pending->devices.push_back(*row); finish();
++                        });
++                  });
++            });
++          }
++        });
++  } catch (const sdbus::Error&) { m_devicesPending = false; m_devices.clear(); }
++}
++
++void NetworkDeviceDetails::refreshProfiles() {
++  if (m_profilesPending || m_writePending) return;
++  m_profilesPending = true;
++  const std::weak_ptr<int> lifetime = m_lifetime;
++  try {
++    Proxy proxy = sdbus::createProxy(m_bus.connection(), kService, sdbus::ObjectPath{"/org/freedesktop/NetworkManager/Settings"});
++    proxy->callMethodAsync("ListConnections").onInterface("org.freedesktop.NetworkManager.Settings")
++        .uponReplyInvoke([this, lifetime, proxy](std::optional<sdbus::Error> error, std::vector<sdbus::ObjectPath> paths) {
++          if (lifetime.expired()) return;
++          if (error || paths.empty()) { m_profilesPending = false; m_profiles.clear(); return; }
++          struct Pending { std::size_t count; std::vector<Profile> profiles; };
++          auto pending = std::make_shared<Pending>(); pending->count = paths.size();
++          auto finish = [this, lifetime, pending]() {
++            if (lifetime.expired() || --pending->count != 0) return;
++            m_profiles = std::move(pending->profiles); m_profilesPending = false;
++          };
++          for (const auto& path : paths) {
++            try {
++              Proxy connection = sdbus::createProxy(m_bus.connection(), kService, path);
++              connection->callMethodAsync("GetSettings").onInterface(kConnection)
++                  .uponReplyInvoke([lifetime, connection, pending, finish, path](std::optional<sdbus::Error> getError, Settings settings) {
++                    if (lifetime.expired()) return;
++                    if (!getError) {
++                      auto type = property<std::string>(settings["connection"], "type");
++                      if (type == "802-3-ethernet" || type == "802-11-wireless") {
++                        Profile profile;
++                        profile.path = std::string(path); profile.type = type;
++                        profile.autoconnect = property<bool>(settings["connection"], "autoconnect", true);
++                        if (type == "802-11-wireless") {
++                          auto bytes = property<std::vector<std::uint8_t>>(settings["802-11-wireless"], "ssid");
++                          profile.ssid.assign(bytes.begin(), bytes.end());
++                        }
++                        profile.settings = std::move(settings);
++                        pending->profiles.push_back(std::move(profile));
++                      }
++                    }
++                    finish();
++                  });
++            } catch (const sdbus::Error&) { finish(); }
++          }
++        });
++  } catch (const sdbus::Error&) { m_profilesPending = false; }
++}
++
++bool NetworkDeviceDetails::wifiAutoconnect(const std::string& ssid) const {
++  return std::ranges::any_of(m_profiles, [&](const Profile& profile) { return profile.type == "802-11-wireless" && (ssid.empty() || profile.ssid == ssid) && profile.autoconnect; });
++}
++
++void NetworkDeviceDetails::setWifiAutoconnect(const std::string& ssid, bool enabled) {
++  std::vector<Profile> profiles;
++  for (const auto& profile : m_profiles) {
++    if (profile.type == "802-11-wireless" && (ssid.empty() || profile.ssid == ssid)) profiles.push_back(profile);
++  }
++  updateProfiles(std::move(profiles), false, enabled);
++}
++
++void NetworkDeviceDetails::preferWired() { updateProfiles(m_profiles, true, true); }
++
++void NetworkDeviceDetails::updateProfiles(std::vector<Profile> profiles, bool routePreference, bool enabled) {
++  if (m_writePending || profiles.empty()) return;
++  m_writePending = true;
++  const std::weak_ptr<int> lifetime = m_lifetime;
++  struct Pending { std::size_t count; bool failed = false; };
++  auto pending = std::make_shared<Pending>(); pending->count = profiles.size();
++  auto finish = [this, lifetime, pending, routePreference](std::optional<sdbus::Error> error) {
++    if (lifetime.expired()) return;
++    if (error) { pending->failed = true; reportError(*error); }
++    if (--pending->count != 0) return;
++    m_writePending = false;
++    if (!pending->failed && routePreference) notify::info("NetworkManager", "有线优先 / Prefer wired", "已保存，下次连接时生效。 / Saved for the next connection.");
++    refresh();
++  };
++  for (auto& profile : profiles) {
++    if (routePreference) {
++      local_network_policy::preferWired(profile.settings, profile.type == "802-3-ethernet");
++    } else local_network_policy::setAutoconnect(profile.settings, enabled);
++    try {
++      Proxy connection = sdbus::createProxy(m_bus.connection(), kService, sdbus::ObjectPath{profile.path});
++      connection->callMethodAsync("Update2").onInterface(kConnection)
++          .withArguments(profile.settings, std::uint32_t{1}, Properties{})
++          .uponReplyInvoke([connection, finish](std::optional<sdbus::Error> error, Properties) { finish(error); });
++    } catch (const sdbus::Error& error) { finish(error); }
++  }
++}
++
++void NetworkDeviceDetails::setWiredActive(const std::string& devicePath, bool enabled) {
++  if (std::ranges::none_of(m_devices, [&](const WiredDeviceInfo& device) { return device.path == devicePath; })) return;
++  const std::weak_ptr<int> lifetime = m_lifetime;
++  try {
++    Proxy device = sdbus::createProxy(m_bus.connection(), kService, sdbus::ObjectPath{devicePath});
++    if (!enabled) {
++      device->callMethodAsync("Disconnect").onInterface(kDevice)
++          .uponReplyInvoke([this, lifetime, device](std::optional<sdbus::Error> error) {
++            if (lifetime.expired()) return;
++            if (error) reportError(*error);
++            refresh();
++          });
++      return;
++    }
++    device->setPropertyAsync("Autoconnect").onInterface(kDevice).toValue(true)
++        .uponReplyInvoke([this, lifetime, device, devicePath](std::optional<sdbus::Error> error) {
++          if (lifetime.expired()) return;
++          if (error) { reportError(*error); return; }
++          try {
++            Proxy manager = sdbus::createProxy(m_bus.connection(), kService, sdbus::ObjectPath{"/org/freedesktop/NetworkManager"});
++            manager->callMethodAsync("ActivateConnection").onInterface(kNm)
++                .withArguments(sdbus::ObjectPath{"/"}, sdbus::ObjectPath{devicePath}, sdbus::ObjectPath{"/"})
++                .uponReplyInvoke([this, lifetime, manager](std::optional<sdbus::Error> activateError, sdbus::ObjectPath) {
++                  if (lifetime.expired()) return;
++                  if (activateError) reportError(*activateError);
++                  refresh();
++                });
++          } catch (const sdbus::Error& activateError) { reportError(activateError); }
++        });
++  } catch (const sdbus::Error& error) { reportError(error); }
++}
+diff --git a/src/dbus/network/network_device_details.h b/src/dbus/network/network_device_details.h
+new file mode 100644
+index 0000000..775b897
+--- /dev/null
++++ b/src/dbus/network/network_device_details.h
+@@ -0,0 +1,42 @@
++#pragma once
++
++#include "dbus/network/network_types.h"
++
++#include <map>
++#include <memory>
++#include <sdbus-c++/sdbus-c++.h>
++#include <string>
++#include <vector>
++
++class SystemBus;
++
++class NetworkDeviceDetails {
++public:
++  explicit NetworkDeviceDetails(SystemBus& bus);
++  ~NetworkDeviceDetails();
++  void refresh();
++  [[nodiscard]] const std::vector<WiredDeviceInfo>& wiredDevices() const noexcept { return m_devices; }
++  [[nodiscard]] bool wifiAutoconnect(const std::string& ssid) const;
++  void setWifiAutoconnect(const std::string& ssid, bool enabled);
++  void setWiredActive(const std::string& devicePath, bool enabled);
++  void preferWired();
++
++private:
++  using Settings = std::map<std::string, std::map<std::string, sdbus::Variant>>;
++  struct Profile {
++    std::string path;
++    std::string ssid;
++    std::string type;
++    bool autoconnect = true;
++    Settings settings;
++  };
++  void refreshProfiles();
++  void updateProfiles(std::vector<Profile> profiles, bool routePreference, bool enabled);
++  SystemBus& m_bus;
++  std::shared_ptr<int> m_lifetime;
++  std::vector<WiredDeviceInfo> m_devices;
++  std::vector<Profile> m_profiles;
++  bool m_devicesPending = false;
++  bool m_profilesPending = false;
++  bool m_writePending = false;
++};
+diff --git a/src/dbus/network/network_manager_service.cpp b/src/dbus/network/network_manager_service.cpp
+index 678a451..8002377 100644
+--- a/src/dbus/network/network_manager_service.cpp
++++ b/src/dbus/network/network_manager_service.cpp
+@@ -1,6 +1,7 @@
+ #include "dbus/network/network_manager_service.h"
+ 
+ #include "core/log.h"
++#include "dbus/network/network_device_details.h"
+ #include "dbus/network/network_manager_security.h"
+ #include "dbus/system_bus.h"
+ #include "i18n/i18n.h"
+@@ -216,6 +217,7 @@ struct NetworkManagerService::PendingAccessPointActivation {
+ 
+ NetworkManagerService::NetworkManagerService(SystemBus& bus) : m_bus(bus) {
+   m_lifetimeToken = std::make_shared<int>(0);
++  m_deviceDetails = std::make_unique<NetworkDeviceDetails>(bus);
+   // NetworkManager can start after the shell or restart mid-session. Follow its bus name instead of
+   // fixing availability at construction, or a shell started while it is down never shows a network.
+   m_busDaemon = sdbus::createProxy(m_bus.connection(), kDbusBusName, kDbusObjectPath);
+@@ -2826,3 +2828,10 @@ NetworkChangeOrigin NetworkManagerService::consumeWirelessEnabledChangeOrigin(bo
+   m_pendingLocalWirelessEnabled.reset();
+   return matchesLocalRequest ? NetworkChangeOrigin::Noctalia : NetworkChangeOrigin::External;
+ }
++
++const std::vector<WiredDeviceInfo>& NetworkManagerService::wiredDevices() const noexcept { return m_deviceDetails->wiredDevices(); }
++void NetworkManagerService::refreshDeviceDetails() { if (available()) m_deviceDetails->refresh(); }
++void NetworkManagerService::setWiredDeviceActive(const std::string& path, bool enabled) { if (available()) m_deviceDetails->setWiredActive(path, enabled); }
++bool NetworkManagerService::wifiAutoconnect(const std::string& ssid) const { return m_deviceDetails->wifiAutoconnect(ssid); }
++void NetworkManagerService::setWifiAutoconnect(const std::string& ssid, bool enabled) { if (available()) m_deviceDetails->setWifiAutoconnect(ssid, enabled); }
++void NetworkManagerService::preferWiredConnections() { if (available()) m_deviceDetails->preferWired(); }
+diff --git a/src/dbus/network/network_manager_service.h b/src/dbus/network/network_manager_service.h
+index bcf335e..beb7961 100644
+--- a/src/dbus/network/network_manager_service.h
++++ b/src/dbus/network/network_manager_service.h
+@@ -15,6 +15,7 @@
+ #include <vector>
+ 
+ class SystemBus;
++class NetworkDeviceDetails;
+ 
+ namespace sdbus {
+   class IProxy;
+@@ -45,6 +46,12 @@ public:
+ 
+   // Trigger a Wi-Fi scan on every wifi device. Results arrive via PropertiesChanged.
+   void requestScan() override;
++  [[nodiscard]] const std::vector<WiredDeviceInfo>& wiredDevices() const noexcept override;
++  void refreshDeviceDetails() override;
++  void setWiredDeviceActive(const std::string& path, bool enabled) override;
++  [[nodiscard]] bool wifiAutoconnect(const std::string& ssid) const override;
++  void setWifiAutoconnect(const std::string& ssid, bool enabled) override;
++  void preferWiredConnections() override;
+ 
+   // Activate a saved connection for the given access point, or create an
+   // in-memory profile for a new network and persist it after activation succeeds.
+@@ -138,6 +145,7 @@ private:
+   struct PendingAccessPointActivation;
+ 
+   SystemBus& m_bus;
++  std::unique_ptr<NetworkDeviceDetails> m_deviceDetails;
+   std::unique_ptr<sdbus::IProxy> m_busDaemon; // NameOwnerChanged watch for NetworkManager.
+   std::unique_ptr<sdbus::IProxy> m_nm;
+   std::unique_ptr<sdbus::IProxy> m_activeConnection;
+diff --git a/src/dbus/network/network_types.h b/src/dbus/network/network_types.h
+index 1acea88..bc02739 100644
+--- a/src/dbus/network/network_types.h
++++ b/src/dbus/network/network_types.h
+@@ -5,6 +5,19 @@
+ #include <cstdint>
+ #include <string>
+ 
++struct WiredDeviceInfo {
++  std::string path;
++  std::string interfaceName;
++  std::string ipv4;
++  std::string macAddress;
++  std::uint32_t state = 0;
++  std::uint32_t speedMbps = 0;
++  bool carrier = false;
++  bool autoconnect = true;
++  bool managed = true;
++  bool operator==(const WiredDeviceInfo&) const = default;
++};
++
+ struct AccessPointInfo {
+   std::string path;       // Backend access point object path.
+   std::string devicePath; // Backend device object path this AP belongs to.
+diff --git a/src/shell/bar/widgets/tray_widget.cpp b/src/shell/bar/widgets/tray_widget.cpp
+index 1490bf0..eac7bbd 100644
+--- a/src/shell/bar/widgets/tray_widget.cpp
++++ b/src/shell/bar/widgets/tray_widget.cpp
+@@ -169,6 +169,7 @@ TrayWidget::TrayWidget(ConfigService& config, TrayService* tray, Options options
+       m_pinnedItems(std::move(options.pinnedItems)), m_hidePassive(options.hidePassive),
+       m_drawerMode(options.drawerMode), m_itemActivated(std::move(options.itemActivated)),
+       m_barPosition(std::move(options.barPosition)), m_panelGridMode(options.panelGridMode),
++      m_panelItemMargin(static_cast<float>(std::clamp(options.drawerItemMargin, 0.0, 8.0))),
+       m_panelGridColumns(std::clamp<std::size_t>(options.panelGridColumns, 1U, 5U)),
+       m_inlineEntryGap(std::max(0.0F, options.inlineEntryGap)), m_matchAdjacentSpacing(options.matchAdjacentSpacing),
+       m_customItemSize(options.customItemSize) {
+@@ -467,7 +468,7 @@ void TrayWidget::rebuild(Renderer& renderer) {
+     Box* hoverBoxPtr = nullptr;
+     ColorSpec hoverFill = widgetForegroundOr(colorSpecFromRole(ColorRole::OnSurface));
+     hoverFill.alpha = 0.0F;
+-    const float padding = barCapsuleSpec().padding * m_contentScale;
++    const float padding = m_panelGridMode ? 0.0F : barCapsuleSpec().padding * m_contentScale;
+     const float boxSize = size + padding * 2.0F;
+ 
+     auto hoverBox = ui::box({
+@@ -771,8 +772,10 @@ void TrayWidget::rebuild(Renderer& renderer) {
+ 
+     // Wrap icon in InputArea for click handling
+     auto area = ui::inputArea({});
+-    area->setSize(itemSize, itemSize);
+-    iconNode->setPosition(std::round((itemSize - iconW) * 0.5F), std::round((itemSize - iconH) * 0.5F));
++    const float itemMargin = m_panelGridMode ? m_panelItemMargin * m_contentScale : 0.0F;
++    const float cellSize = itemSize + 2.0F * itemMargin;
++    area->setSize(cellSize, cellSize);
++    iconNode->setPosition(std::round((cellSize - iconW) * 0.5F), std::round((cellSize - iconH) * 0.5F));
+     auto itemId = item.id;
+     area->setAcceptedButtons(InputArea::buttonMask({BTN_LEFT, BTN_RIGHT}));
+     InputArea* areaPtr = area.get();
+@@ -800,7 +803,7 @@ void TrayWidget::rebuild(Renderer& renderer) {
+       area->setTooltip(tooltipText);
+     }
+ 
+-    attachHover(*area, itemSize);
++    attachHover(*area, cellSize);
+ 
+     if (m_panelGridMode) {
+       if (gridRow == nullptr || gridCol >= m_panelGridColumns) {
+diff --git a/src/shell/bar/widgets/tray_widget.h b/src/shell/bar/widgets/tray_widget.h
+index 20fd7be..3c291c4 100644
+--- a/src/shell/bar/widgets/tray_widget.h
++++ b/src/shell/bar/widgets/tray_widget.h
+@@ -37,6 +37,7 @@ public:
+     std::optional<float> customItemSize;
+     // Read by TrayDrawerPanel, not by TrayWidget: they live here so the tray widget definition owns their defaults.
+     double drawerItemSize = Style::baseGlyphSize;
++    double drawerItemMargin = 1.0;
+     bool detachedPanel = false;
+   };
+ 
+@@ -97,6 +98,7 @@ private:
+   std::function<void()> m_itemActivated;
+   std::string m_barPosition;
+   bool m_panelGridMode = false;
++  float m_panelItemMargin = 1.0F;
+   std::size_t m_panelGridColumns = 3;
+   float m_inlineEntryGap = Style::spaceXs;
+   bool m_matchAdjacentSpacing = false;
+diff --git a/src/shell/bar/widgets/tray_widget_definition.cpp b/src/shell/bar/widgets/tray_widget_definition.cpp
+index 9f64c1f..4b910f0 100644
+--- a/src/shell/bar/widgets/tray_widget_definition.cpp
++++ b/src/shell/bar/widgets/tray_widget_definition.cpp
+@@ -45,6 +45,10 @@ const noctalia::bar::WidgetDefinition<TrayWidget::Options, TrayWidgetDefinitionC
+                           .visibleWhen = drawerOn,
+                       },
+               }),
++              field<&Options::drawerItemMargin>({
++                  .key = "drawer_item_margin", .minValue = 0.0, .maxValue = 8.0, .step = 1.0,
++                  .presentation = settings::WidgetSettingPresentation{ .visibleWhen = drawerOn },
++              }),
+               field<&Options::detachedPanel>({
+                   .key = "detached_panel",
+                   .presentation =
+diff --git a/src/shell/control_center/control_center_panel.cpp b/src/shell/control_center/control_center_panel.cpp
+index b5634ee..144045c 100644
+--- a/src/shell/control_center/control_center_panel.cpp
++++ b/src/shell/control_center/control_center_panel.cpp
+@@ -65,7 +65,7 @@ ControlCenterPanel::ControlCenterPanel(const ControlCenterServices& services) {
+   m_tabs[tabIndex(TabId::Notifications)] =
+       std::make_unique<NotificationsTab>(services.notifications, services.platform);
+   m_tabs[tabIndex(TabId::Network)] =
+-      std::make_unique<NetworkTab>(services.network, services.networkSecrets, services.externalIp, services.modem);
++      std::make_unique<NetworkTab>(services.network, services.networkSecrets, services.externalIp, services.modem, services.clipboard);
+   m_tabs[tabIndex(TabId::Bluetooth)] = std::make_unique<BluetoothTab>(services.bluetooth, services.bluetoothAgent);
+   m_tabs[tabIndex(TabId::Monitor)] = std::make_unique<MonitorTab>(services.brightness, services.config);
+   m_tabs[tabIndex(TabId::System)] = std::make_unique<SystemTab>(services.sysmon);
+diff --git a/src/shell/control_center/tabs/network_tab.cpp b/src/shell/control_center/tabs/network_tab.cpp
+index d3c2096..cf2761c 100644
+--- a/src/shell/control_center/tabs/network_tab.cpp
++++ b/src/shell/control_center/tabs/network_tab.cpp
+@@ -1,6 +1,8 @@
+ #include "shell/control_center/tabs/network_tab.h"
+ 
+ #include "core/ui_phase.h"
++#include "notification/notifications.h"
++#include "wayland/clipboard_service.h"
+ #include "dbus/modem/modem_manager_service.h"
+ #include "dbus/network/external_ip_service.h"
+ #include "dbus/network/inetwork_service.h"
+@@ -134,9 +136,6 @@ namespace {
+       }
+       out += part;
+     };
+-    if (!s.ipv4.empty()) {
+-      append(s.ipv4);
+-    }
+     if (s.kind == NetworkConnectivity::Wireless) {
+       if (s.signalStrength > 0) {
+         append(std::to_string(static_cast<int>(s.signalStrength)) + "%");
+@@ -600,9 +599,9 @@ private:
+ };
+ 
+ NetworkTab::NetworkTab(
+-    INetworkService* network, NetworkSecretAgent* secrets, ExternalIpService* externalIp, ModemManagerService* modem
++    INetworkService* network, NetworkSecretAgent* secrets, ExternalIpService* externalIp, ModemManagerService* modem, ClipboardService* clipboard
+ )
+-    : m_network(network), m_secrets(secrets), m_externalIpService(externalIp), m_modem(modem) {
++    : m_clipboard(clipboard), m_network(network), m_secrets(secrets), m_externalIpService(externalIp), m_modem(modem) {
+   if (m_secrets != nullptr) {
+     m_secrets->setRequestCallback([this](const NetworkSecretAgent::SecretRequest& request) {
+       showPasswordPrompt(request);
+@@ -641,6 +640,16 @@ std::unique_ptr<Flex> NetworkTab::create() {
+           .fontWeight = FontWeight::Bold,
+           .color = colorSpecFromRole(ColorRole::OnSurface),
+       }),
++      ui::button({
++          .out = &m_copyIpButton,
++          .text = m_network != nullptr ? m_network->state().ipv4 : "",
++          .fontSize = Style::fontSizeCaption * scale,
++          .controlHeight = Style::fontSizeCaption * scale + 4.0F,
++          .variant = ButtonVariant::Ghost,
++          .paddingV = 0.0F,
++          .paddingH = 0.0F,
++          .onClick = [this]() { if (m_network != nullptr) copyIp(m_network->state().ipv4); },
++      }),
+       ui::label({
+           .out = &m_currentDetail,
+           .fontSize = Style::fontSizeCaption * scale,
+@@ -881,6 +890,7 @@ void NetworkTab::setActive(bool active) {
+   }
+   m_active = active;
+   if (m_active && m_network != nullptr) {
++    m_network->refreshDeviceDetails();
+     m_network->requestScan();
+   }
+ }
+@@ -900,6 +910,10 @@ void NetworkTab::doLayout(Renderer& renderer, float contentWidth, float bodyHeig
+ }
+ 
+ void NetworkTab::doUpdate(Renderer& renderer) {
++  if (m_active && m_network != nullptr && std::chrono::steady_clock::now() - m_lastDeviceDetailsRefresh >= std::chrono::seconds(2)) {
++    m_lastDeviceDetailsRefresh = std::chrono::steady_clock::now();
++    m_network->refreshDeviceDetails();
++  }
+   syncPasswordCard();
+   focusPendingPasswordPrompt();
+   rebuildApList(renderer);
+@@ -913,6 +927,7 @@ void NetworkTab::doUpdate(Renderer& renderer) {
+ }
+ 
+ void NetworkTab::onClose() {
++  m_copyIpButton = nullptr;
+   m_rootLayout = nullptr;
+   m_currentCard = nullptr;
+   m_currentTitle = nullptr;
+@@ -1140,7 +1155,19 @@ void NetworkTab::clearPasswordPrompt() {
+ 
+ bool NetworkTab::networkAvailable() const noexcept { return m_network != nullptr && m_network->available(); }
+ 
++void NetworkTab::copyIp(const std::string& address) {
++  if (address.empty()) return;
++  if (m_clipboard == nullptr || !m_clipboard->copyText(address))
++    notify::error("Noctalia", i18n::tr("local-patches.copy-ip"), i18n::tr("local-patches.copy-failed"));
++}
++
+ void NetworkTab::syncCurrentCard() {
++  if (m_copyIpButton != nullptr) {
++    const std::string ip = m_network != nullptr ? m_network->state().ipv4 : "";
++    m_copyIpButton->setText(ip);
++    m_copyIpButton->setVisible(!ip.empty());
++    m_copyIpButton->setEnabled(!ip.empty());
++  }
+   if (m_currentTitle == nullptr || m_currentDetail == nullptr) {
+     return;
+   }
+@@ -1284,6 +1311,13 @@ NetworkTab::structureKey(const std::vector<AccessPointInfo>& aps, const std::vec
+   key += scanning ? '1' : '0';
+   // Cellular rows live-sync their state/signal, so only the structural
+   // identity (which modems exist) belongs to the key.
++  if (m_network != nullptr) {
++    for (const auto& device : m_network->wiredDevices()) {
++      key += "\nwired:" + device.path + ":" + device.interfaceName + ":" + device.ipv4 + ":" + device.macAddress;
++      key += std::to_string(device.state) + ":" + std::to_string(device.speedMbps) + (device.carrier ? ":up" : ":down");
++    }
++    key += m_network->wifiAutoconnect({}) ? "\nautowifi:1" : "\nautowifi:0";
++  }
+   key += "\ncellular:\n";
+   if (m_modem != nullptr) {
+     for (const auto& modem : m_modem->modems()) {
+@@ -1502,6 +1536,63 @@ void NetworkTab::rebuildApList(Renderer& renderer) {
+       m_list->addChild(std::move(cellularCard));
+     }
+ 
++    if (!m_network->wiredDevices().empty()) {
++      auto wiredCard = ui::column({
++          .configure = [scale, opacity](Flex& card) { applySectionCardStyle(card, scale, opacity); },
++      });
++      auto header = makeCardHeaderRow(i18n::tr("local-patches.wired"), scale);
++      header->addChild(ui::button({
++          .text = i18n::tr("local-patches.prefer-wired"),
++          .variant = ButtonVariant::Ghost,
++          .onClick = [this]() { if (m_network != nullptr) m_network->preferWiredConnections(); },
++      }));
++      wiredCard->addChild(std::move(header));
++      for (const auto& device : m_network->wiredDevices()) {
++        auto row = ui::row({ .align = FlexAlign::Start, .justify = FlexJustify::Start, .gap = Style::spaceSm * scale });
++        auto text = ui::column({ .align = FlexAlign::Start, .justify = FlexJustify::Start, .gap = Style::spaceXs * scale, .flexGrow = 1.0F });
++        text->addChild(ui::label({ .text = device.interfaceName, .fontSize = Style::fontSizeBody * scale, .fontWeight = FontWeight::Bold }));
++        std::string detail = !device.managed ? i18n::tr("local-patches.unmanaged")
++            : !device.carrier ? i18n::tr("local-patches.no-cable")
++            : device.state == 100 ? i18n::tr("local-patches.connected")
++            : device.state >= 40 && device.state < 100 ? i18n::tr("local-patches.connecting")
++            : i18n::tr("local-patches.disconnected");
++        if (device.carrier && device.speedMbps > 0) detail += " · " + std::to_string(device.speedMbps) + " Mbps";
++        text->addChild(ui::label({ .text = detail, .fontSize = Style::fontSizeCaption * scale,
++            .color = colorSpecFromRole(ColorRole::OnSurfaceVariant) }));
++        auto ipRow = ui::row({ .align = FlexAlign::Center, .justify = FlexJustify::Start, .gap = Style::spaceXs * scale });
++        ipRow->addChild(ui::label({ .text = "IP", .fontSize = Style::fontSizeCaption * scale,
++            .color = colorSpecFromRole(ColorRole::OnSurfaceVariant) }));
++        if (!device.ipv4.empty()) {
++          ipRow->addChild(ui::button({
++              .text = device.ipv4, .fontSize = Style::fontSizeCaption * scale,
++              .controlHeight = Style::fontSizeCaption * scale + 4.0F,
++              .variant = ButtonVariant::Ghost, .paddingV = 0.0F, .paddingH = 0.0F,
++              .onClick = [this, address = device.ipv4]() { copyIp(address); },
++          }));
++        } else {
++          ipRow->addChild(ui::label({ .text = "—", .fontSize = Style::fontSizeCaption * scale,
++              .color = colorSpecFromRole(ColorRole::OnSurfaceVariant) }));
++        }
++        text->addChild(std::move(ipRow));
++        if (!device.macAddress.empty()) {
++          text->addChild(ui::label({ .text = "MAC " + device.macAddress,
++              .fontSize = Style::fontSizeCaption * scale, .color = colorSpecFromRole(ColorRole::OnSurfaceVariant) }));
++        }
++        row->addChild(std::move(text));
++        row->addChild(ui::button({
++            .glyph = device.state == 100 ? "plug-off" : "plug-connected",
++            .glyphSize = Style::baseGlyphSize * scale,
++            .enabled = device.managed && device.carrier && (device.state < 40 || device.state >= 100),
++            .variant = ButtonVariant::Ghost,
++            .onClick = [this, path = device.path, enabled = device.state != 100]() {
++              if (m_network != nullptr) m_network->setWiredDeviceActive(path, enabled);
++            },
++        }));
++        wiredCard->addChild(std::move(row));
++      }
++      m_list->addChild(std::move(wiredCard));
++    }
++
+     {
+       auto wifiCard = ui::column({
+           .configure = [scale, opacity](Flex& card) { applySectionCardStyle(card, scale, opacity); },
+@@ -1544,6 +1635,18 @@ void NetworkTab::rebuildApList(Renderer& renderer) {
+       );
+       wifiCard->addChild(std::move(wifiHeader));
+ 
++      {
++        auto automatic = ui::row({ .align = FlexAlign::Center, .gap = Style::spaceSm * scale });
++        automatic->addChild(ui::label({ .text = i18n::tr("local-patches.wifi-autoconnect"), .fontSize = Style::fontSizeCaption * scale, .flexGrow = 1.0F }));
++        automatic->addChild(ui::toggle({
++            .checkedImmediate = m_network->wifiAutoconnect({}),
++            .scale = scale,
++            .onChange = [this](bool enabled) {
++              if (m_network != nullptr) m_network->setWifiAutoconnect({}, enabled);
++            },
++        }));
++        wifiCard->addChild(std::move(automatic));
++      }
+       wifiCard->addChild(buildApRows());
+ 
+       m_list->addChild(std::move(wifiCard));
+diff --git a/src/shell/control_center/tabs/network_tab.h b/src/shell/control_center/tabs/network_tab.h
+index e22625b..a8e5480 100644
+--- a/src/shell/control_center/tabs/network_tab.h
++++ b/src/shell/control_center/tabs/network_tab.h
+@@ -25,13 +25,14 @@ class ModemManagerService;
+ class ScrollView;
+ class Select;
+ class Spinner;
++class ClipboardService;
+ class Toggle;
+ class INetworkService;
+ 
+ class NetworkTab : public Tab {
+ public:
+   NetworkTab(
+-      INetworkService* network, NetworkSecretAgent* secrets, ExternalIpService* externalIp, ModemManagerService* modem
++      INetworkService* network, NetworkSecretAgent* secrets, ExternalIpService* externalIp, ModemManagerService* modem, ClipboardService* clipboard = nullptr
+   );
+   ~NetworkTab() override;
+ 
+@@ -48,6 +49,7 @@ private:
+   // A backend exists and its daemon is on the bus.
+   [[nodiscard]] bool networkAvailable() const noexcept;
+   void syncCurrentCard();
++  void copyIp(const std::string& address);
+   void beginPendingAction(bool wasConnected);
+   void requestWirelessEnabled(bool enabled);
+   void handleWirelessEnabledCompletion(std::uint64_t generation, bool success);
+@@ -80,6 +82,9 @@ private:
+   [[nodiscard]] std::string
+   structureKey(const std::vector<AccessPointInfo>& aps, const std::vector<VpnConnectionInfo>& vpns) const;
+ 
++  ClipboardService* m_clipboard = nullptr;
++  Button* m_copyIpButton = nullptr;
++  std::chrono::steady_clock::time_point m_lastDeviceDetailsRefresh{};
+   INetworkService* m_network = nullptr;
+   NetworkSecretAgent* m_secrets = nullptr;
+   ExternalIpService* m_externalIpService = nullptr;
+diff --git a/src/shell/launcher/launcher_panel.cpp b/src/shell/launcher/launcher_panel.cpp
+index 555537c..98e763c 100644
+--- a/src/shell/launcher/launcher_panel.cpp
++++ b/src/shell/launcher/launcher_panel.cpp
+@@ -1529,10 +1529,13 @@ void LauncherPanel::create() {
+       .scale = scale,
+       .compact = true,
+       .surfaceOpacity = panelCardOpacity(),
+-      .equalSegmentWidths = true,
++      .equalSegmentWidths = false,
+       .visible = false,
+       .participatesInLayout = false,
+-      .configure = [](Segmented& segmented) { segmented.setAlign(FlexAlign::Center); },
++      .configure = [](Segmented& segmented) {
++        segmented.setAlign(FlexAlign::Center);
++        segmented.setWrap(true);
++      },
+   });
+ 
+   auto body = ui::column({
+diff --git a/src/shell/tray/tray_drawer_panel.cpp b/src/shell/tray/tray_drawer_panel.cpp
+index b41c8a4..3011c89 100644
+--- a/src/shell/tray/tray_drawer_panel.cpp
++++ b/src/shell/tray/tray_drawer_panel.cpp
+@@ -7,6 +7,7 @@
+ #include "shell/tray/tray_identifier.h"
+ #include "shell/tray/tray_settings.h"
+ #include "util/string_utils.h"
++#include "system/local_desktop_presentation.h"
+ 
+ #include <algorithm>
+ #include <vector>
+@@ -27,26 +28,11 @@ std::optional<float> TrayDrawerPanel::currentDrawerItemSize() const {
+   return m_config != nullptr ? tray::resolvedTrayOptions(*m_config).drawerItemSize : std::nullopt;
+ }
+ 
+-float TrayDrawerPanel::resolvedItemGap() const {
+-  float gap = Style::spaceXs;
+-  if (m_config == nullptr) {
+-    return gap;
+-  }
+-
+-  const auto resolved = tray::resolvedTrayOptions(*m_config);
+-  if (!m_config->config().bars.empty()) {
+-    gap = static_cast<float>(m_config->config().bars.front().widgetSpacing);
+-  }
+-  if (!resolved.options.matchAdjacentSpacing || m_config->config().bars.empty()) {
+-    return gap;
+-  }
+-  const auto capsule = tray::resolvedTrayCapsuleSpec(*m_config, m_config->config().bars.front());
+-  const float padding = capsule.enabled ? capsule.padding * contentScale() : 0.0F;
+-  return gap + 2.0F * padding;
+-}
++float TrayDrawerPanel::resolvedItemGap() const { return 0.0F; }
+ 
+ float TrayDrawerPanel::preferredWidth() const {
+-  const float itemSize = scaled(currentDrawerItemSize().value_or(Style::baseGlyphSize));
++  const float margin = m_config != nullptr ? static_cast<float>(tray::resolvedTrayOptions(*m_config).options.drawerItemMargin) : 1.0F;
++  const float itemSize = scaled(local_desktop_presentation::trayCellExtent(currentDrawerItemSize().value_or(Style::baseGlyphSize), margin));
+   const float gap = resolvedItemGap();
+   const std::size_t drawerColumns = currentDrawerColumns();
+   const std::size_t cols = std::min<std::size_t>(drawerColumns, std::max<std::size_t>(1, visibleItemCount()));
+@@ -56,7 +42,8 @@ float TrayDrawerPanel::preferredWidth() const {
+ }
+ 
+ float TrayDrawerPanel::preferredHeight() const {
+-  const float itemSize = scaled(currentDrawerItemSize().value_or(Style::baseGlyphSize));
++  const float margin = m_config != nullptr ? static_cast<float>(tray::resolvedTrayOptions(*m_config).options.drawerItemMargin) : 1.0F;
++  const float itemSize = scaled(local_desktop_presentation::trayCellExtent(currentDrawerItemSize().value_or(Style::baseGlyphSize), margin));
+   const float gap = resolvedItemGap();
+   const std::size_t count = std::max<std::size_t>(1, visibleItemCount());
+   const std::size_t drawerColumns = currentDrawerColumns();
+@@ -90,6 +77,8 @@ void TrayDrawerPanel::create() {
+   options.drawerMode = false;
+   options.itemActivated = []() { PanelManager::instance().close(); };
+   options.panelGridMode = true;
++  options.inlineEntryGap = 0.0F;
++  options.matchAdjacentSpacing = false;
+   options.customItemSize = resolved.drawerItemSize;
+   m_drawerWidget = std::make_unique<TrayWidget>(*m_config, m_tray, std::move(options));
+   m_drawerWidget->setContentScale(contentScale());
+diff --git a/src/system/hardware_info.cpp b/src/system/hardware_info.cpp
+index 61c0d22..a740279 100644
+--- a/src/system/hardware_info.cpp
++++ b/src/system/hardware_info.cpp
+@@ -1,4 +1,5 @@
+ #include "system/hardware_info.h"
++#include "system/local_desktop_presentation.h"
+ 
+ #include "compositors/compositor_detect.h"
+ #include "i18n/i18n.h"
+@@ -419,8 +420,7 @@ std::string diskUsageLabel(const std::string& mountPoint) {
+   const double total = static_cast<double>(sv.f_blocks) * static_cast<double>(sv.f_frsize);
+   const double avail = static_cast<double>(sv.f_bavail) * static_cast<double>(sv.f_frsize);
+   const double used = std::max(0.0, total - avail);
+-  const double percent = total > 0.0 ? (used / total) * 100.0 : 0.0;
+-  return std::format("{} ({:.0F}%)", FormatUnits::formatDecimalBytesUsage(used, total), percent);
++  return local_desktop_presentation::diskGigabytes(used, total);
+ }
+ 
+ std::string compositorLabel() { return detectCompositor(); }
+diff --git a/src/system/local_desktop_presentation.h b/src/system/local_desktop_presentation.h
+new file mode 100644
+index 0000000..a1ab5ea
+--- /dev/null
++++ b/src/system/local_desktop_presentation.h
+@@ -0,0 +1,18 @@
++#pragma once
++
++#include <algorithm>
++#include <format>
++#include <string>
++
++namespace local_desktop_presentation {
++  inline std::string diskGigabytes(double used, double total) {
++    used = std::max(0.0, used);
++    total = std::max(0.0, total);
++    const double percent = total > 0.0 ? used * 100.0 / total : 0.0;
++    return std::format("{:.1F} / {:.1F} GB ({:.0F}%)", used / 1e9, total / 1e9, percent);
++  }
++
++  inline float trayCellExtent(float iconSize, float margin) {
++    return iconSize + 2.0F * std::clamp(margin, 0.0F, 8.0F);
++  }
++}
+diff --git a/src/ui/controls/segmented.cpp b/src/ui/controls/segmented.cpp
+index e4d082e..98f53fc 100644
+--- a/src/ui/controls/segmented.cpp
++++ b/src/ui/controls/segmented.cpp
+@@ -112,6 +112,19 @@ void Segmented::setCompact(bool compact) {
+   markLayoutDirty();
+ }
+ 
++void Segmented::setWrap(bool wrapOptions) {
++  if (wrap() == wrapOptions) {
++    return;
++  }
++  Flex::setWrap(wrapOptions);
++  for (Separator* separator : m_separators) {
++    separator->setVisible(!wrapOptions);
++    separator->setParticipatesInLayout(!wrapOptions);
++  }
++  applyOuterStyle();
++  refreshVariants();
++}
++
+ void Segmented::setPadding(float padding) {
+   m_outerPadding = padding;
+   Flex::setPadding(padding);
+@@ -189,6 +202,8 @@ std::unique_ptr<Separator> Segmented::makeSegmentSeparator() {
+   sep->setThickness(std::max(1.0F, Style::borderWidth * m_scale));
+   sep->setColor(colorSpecFromRole(ColorRole::Outline));
+   sep->setFlexGrow(0.0F);
++  sep->setVisible(!wrap());
++  sep->setParticipatesInLayout(!wrap());
+   return sep;
+ }
+ 
+@@ -245,7 +260,7 @@ void Segmented::refreshVariants() {
+     }
+     m_buttons[i]->setVariant(i == m_selected ? ButtonVariant::TabActive : ButtonVariant::Tab);
+     Radii radii;
+-    if (n == 1) {
++    if (wrap() || n == 1) {
+       radii = Radii{r, r, r, r};
+     } else if (i == 0) {
+       radii = Radii{r, 0.0F, 0.0F, r};
+@@ -260,6 +275,7 @@ void Segmented::refreshVariants() {
+ 
+ void Segmented::applyOuterStyle() {
+   Flex::setPadding(m_outerPadding);
++  setGap(wrap() ? Style::spaceXs * m_scale : 0.0F);
+   setFill(colorSpecFromRole(m_surfaceRole, m_surfaceOpacity));
+   clearBorder();
+   setRadius(Style::scaledRadiusMd(m_scale));
+diff --git a/src/ui/controls/segmented.h b/src/ui/controls/segmented.h
+index 0e5d125..6d4310b 100644
+--- a/src/ui/controls/segmented.h
++++ b/src/ui/controls/segmented.h
+@@ -32,6 +32,8 @@ public:
+ 
+   void setOptionTooltip(std::size_t index, std::string_view text);
+   void setCompact(bool compact);
++  // Keep option labels at their natural width and flow onto additional rows.
++  void setWrap(bool wrap);
+   void clearOptions();
+ 
+   void setPadding(float padding);
+diff --git a/tests/button_layout_test.cpp b/tests/button_layout_test.cpp
+index c303abb..fde87b9 100644
+--- a/tests/button_layout_test.cpp
++++ b/tests/button_layout_test.cpp
+@@ -3,6 +3,8 @@
+ #include "ui/controls/button.h"
+ #include "ui/controls/glyph.h"
+ #include "ui/controls/label.h"
++#include "ui/controls/segmented.h"
++#include "ui/controls/separator.h"
+ #include "ui/style.h"
+ 
+ #include <algorithm>
+@@ -190,5 +192,65 @@ int main() {
+     return 1;
+   }
+ 
++  // Launcher category names must retain their full text budget at narrow panel
++  // widths and larger UI scales, flowing onto additional rows instead of eliding.
++  for (const float scale : {1.0F, 1.5F}) {
++    for (const float width : {260.0F, 560.0F, 1040.0F}) {
++      Segmented categories;
++      categories.setScale(scale);
++      categories.setCompact(true);
++      categories.setAlign(FlexAlign::Center);
++      categories.setWrap(true);
++      const std::vector<std::string_view> names{"Internet", "Development", "Graphics", "Audio",
++                                                "Video",    "Office",      "System",   "Utilities"};
++      for (const auto name : names) {
++        categories.addOption(name, "apps");
++      }
++      LayoutConstraints constraints;
++      constraints.setExactWidth(width);
++      const LayoutSize measured = categories.measure(renderer, constraints);
++      categories.arrange(renderer, LayoutRect{.width = width, .height = measured.height});
++      std::size_t buttonCount = 0;
++      bool hasAdditionalRow = false;
++      for (const auto& child : categories.children()) {
++        if (const auto* separator = dynamic_cast<const Separator*>(child.get())) {
++          if (separator->participatesInLayout() || separator->visible()) {
++            std::println(stderr, "button_layout_test: wrapped category separator occupies a row");
++            return 1;
++          }
++        }
++        const auto* option = dynamic_cast<const Button*>(child.get());
++        if (option == nullptr) {
++          continue;
++        }
++        if (buttonCount >= names.size()) {
++          std::println(stderr, "button_layout_test: unexpected category button");
++          return 1;
++        }
++        const Label* label = option->label();
++        const float textWidth = static_cast<float>(names[buttonCount].size()) * 10.0F;
++        if (label == nullptr
++            || (label->maxWidth() > 0.0F && label->maxWidth() + 0.01F < textWidth)
++            || option->x() + option->width() > width + 0.01F
++            || option->y() + option->height() > measured.height + 0.01F) {
++          std::println(
++              stderr,
++              "button_layout_test: category {} clipped width={} scale={} budget={} expected={} box=({},{},{},{}) "
++              "totalHeight={}",
++              names[buttonCount], width, scale, label == nullptr ? -1.0F : label->maxWidth(), textWidth, option->x(),
++              option->y(), option->width(), option->height(), measured.height
++          );
++          return 1;
++        }
++        hasAdditionalRow = hasAdditionalRow || option->y() > 0.0F;
++        ++buttonCount;
++      }
++      if (buttonCount != names.size() || (width == 260.0F && !hasAdditionalRow)) {
++        std::println(stderr, "button_layout_test: category options did not flow onto rows");
++        return 1;
++      }
++    }
++  }
++
+   return 0;
+ }
+diff --git a/tests/local_desktop_patches_test.cpp b/tests/local_desktop_patches_test.cpp
+new file mode 100644
+index 0000000..73cb2b9
+--- /dev/null
++++ b/tests/local_desktop_patches_test.cpp
+@@ -0,0 +1,37 @@
++#include "dbus/network/local_network_policy.h"
++#include "system/local_desktop_presentation.h"
++
++#include <cassert>
++#include <iostream>
++
++int main() {
++  using namespace local_desktop_presentation;
++  assert(diskGigabytes(500e9, 2000e9) == "500.0 / 2000.0 GB (25%)");
++  assert(diskGigabytes(0, 0) == "0.0 / 0.0 GB (0%)");
++  assert(diskGigabytes(512345678901.0, 2000000000000.0) == "512.3 / 2000.0 GB (26%)");
++  assert(trayCellExtent(20, 1) == 22);
++  assert(trayCellExtent(20, 0) == 20);
++  assert(trayCellExtent(20, -3) == 20);
++  local_network_policy::Settings settings{
++    {"connection", {{"id", sdbus::Variant{std::string{"existing-profile"}}}, {"autoconnect", sdbus::Variant{true}}}},
++    {"802-11-wireless", {{"ssid", sdbus::Variant{std::vector<std::uint8_t>{1, 2, 3}}}}},
++    {"802-11-wireless-security", {{"psk", sdbus::Variant{std::string{"fixture-secret"}}}}},
++    {"ipv4", {{"method", sdbus::Variant{std::string{"manual"}}}, {"gateway", sdbus::Variant{std::string{"10.0.0.1"}}}}},
++    {"ipv6", {{"method", sdbus::Variant{std::string{"disabled"}}}}},
++  };
++  local_network_policy::setAutoconnect(settings, false);
++  assert(!settings.at("connection").at("autoconnect").get<bool>());
++  assert(settings.at("connection").at("id").get<std::string>() == "existing-profile");
++  assert(settings.at("802-11-wireless-security").at("psk").get<std::string>() == "fixture-secret");
++  local_network_policy::preferWired(settings, true);
++  assert(settings.at("ipv4").at("route-metric").get<std::int64_t>() == 100);
++  assert(settings.at("ipv4").at("method").get<std::string>() == "manual");
++  assert(settings.at("ipv4").at("gateway").get<std::string>() == "10.0.0.1");
++  assert(!settings.at("ipv6").contains("route-metric"));
++  local_network_policy::preferWired(settings, false);
++  assert(settings.at("ipv4").at("route-metric").get<std::int64_t>() == 600);
++  settings.erase("ipv6");
++  local_network_policy::preferWired(settings, true);
++  assert(!settings.contains("ipv6"));
++  std::cout << "GB formatting, tray geometry and profile preservation passed\n";
++}
+diff --git a/tests/local_network_probe.cpp b/tests/local_network_probe.cpp
+new file mode 100644
+index 0000000..55d9ee0
+--- /dev/null
++++ b/tests/local_network_probe.cpp
+@@ -0,0 +1,26 @@
++#include "dbus/network/network_device_details.h"
++#include "dbus/system_bus.h"
++#include <chrono>
++#include <iostream>
++#include <nlohmann/json.hpp>
++#include <thread>
++
++int main(int argc, char** argv) {
++  SystemBus bus;
++  NetworkDeviceDetails details(bus);
++  details.refresh();
++  const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(3);
++  while (std::chrono::steady_clock::now() < deadline) {
++    bus.processPendingEvents();
++    std::this_thread::sleep_for(std::chrono::milliseconds(5));
++  }
++  nlohmann::json result = nlohmann::json::array();
++  bool found = argc < 2;
++  for (const auto& device : details.wiredDevices()) {
++    if (argc >= 2 && device.interfaceName == argv[1]) found = true;
++    result.push_back({{"interface", device.interfaceName}, {"state", device.state},
++        {"carrier", device.carrier}, {"speed_mbps", device.speedMbps}, {"ipv4", device.ipv4}});
++  }
++  std::cout << result.dump(2) << '\n';
++  return found ? 0 : 1;
++}

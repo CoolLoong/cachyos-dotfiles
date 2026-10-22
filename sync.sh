@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 
 DOTFILES_DIR="$(cd "$(dirname "$0")" && pwd)"
 MODE="${1:-}"
@@ -16,7 +17,7 @@ sync_tracked_files() {
     local file
     local src
 
-    while IFS= read -r file; do
+    while IFS= read -r -d '' file; do
         src="$src_base/${file#"$prefix/"}"
         if [[ -f "$src" ]]; then
             echo "同步 $file"
@@ -25,7 +26,7 @@ sync_tracked_files() {
         else
             echo "跳过 $file（系统中不存在）"
         fi
-    done < <(cd "$DOTFILES_DIR" && git ls-files -- "$prefix/")
+    done < <(cd "$DOTFILES_DIR" && git ls-files -z --cached --others --exclude-standard -- "$prefix/")
 }
 
 sync_system_to_project() {
@@ -33,6 +34,7 @@ sync_system_to_project() {
 
     sync_tracked_files ".config" "$HOME/.config"
     sync_tracked_files ".local/share" "$HOME/.local/share"
+    sync_tracked_files ".local/state" "$HOME/.local/state"
 
     if [[ -f /etc/default/grub ]]; then
         echo "同步 etc/default/grub"
@@ -81,7 +83,12 @@ sync_system_to_project() {
     pacman -Qqen > "$DOTFILES_DIR/pkglist.txt"
 
     echo "更新 aurlist.txt..."
-    pacman -Qqem > "$DOTFILES_DIR/aurlist.txt"
+    if [[ -f "$DOTFILES_DIR/localpkglist.txt" ]]; then
+        pacman -Qqem | awk 'FILENAME != "-" { skip[$0] = 1; next } !($0 in skip)' \
+            "$DOTFILES_DIR/localpkglist.txt" - > "$DOTFILES_DIR/aurlist.txt"
+    else
+        pacman -Qqem > "$DOTFILES_DIR/aurlist.txt"
+    fi
 
     echo "同步完成！"
 }
@@ -99,6 +106,13 @@ sync_project_to_system() {
         echo "同步 .local/share/"
         mkdir -p "$HOME/.local/share"
         cp -rf "$DOTFILES_DIR/.local/share/." "$HOME/.local/share/"
+    fi
+
+    # Only selected preference files are kept here; histories and keys are ignored.
+    if [[ -d "$DOTFILES_DIR/.local/state" ]]; then
+        echo "同步 .local/state/ 配置覆盖"
+        mkdir -p "$HOME/.local/state"
+        cp -rf "$DOTFILES_DIR/.local/state/." "$HOME/.local/state/"
     fi
 
     if [[ -f "$DOTFILES_DIR/etc/default/grub" ]]; then
@@ -134,6 +148,14 @@ sync_project_to_system() {
             echo "已请求 Fcitx5 重新加载配置"
         else
             echo "提示：当前会话无法重新加载 Fcitx5，请在图形会话中执行 fcitx5-remote -r"
+        fi
+    fi
+
+    if command -v noctalia-patched &>/dev/null; then
+        if noctalia-patched msg config-reload &>/dev/null; then
+            echo "已请求 Noctalia 补丁版重新加载配置"
+        else
+            echo "提示：请在图形会话中执行 noctalia-patched msg config-reload"
         fi
     fi
 

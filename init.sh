@@ -1,5 +1,8 @@
 #!/bin/bash
 
+DOTFILES_DIR="$(cd "$(dirname "$0")" && pwd)"
+cd "$DOTFILES_DIR" || exit 1
+
 # 删除中文目录
 rm -rf ~/下载 ~/公共 ~/图片 ~/文档 ~/桌面 ~/模板 ~/视频 ~/音乐
 
@@ -19,6 +22,9 @@ while read -r pkg <&3; do
     [[ -n "$pkg" ]] && paru -S --needed "$pkg"
 done 3< aurlist.txt
 
+# 从本仓库构建本地补丁包
+bash "$DOTFILES_DIR/update.sh" local || exit 1
+
 # 删除默认的 Firefox 浏览器（如果已安装）
 pacman -Qi firefox &>/dev/null && sudo pacman -Rns firefox
 
@@ -27,6 +33,12 @@ cp -rf ./.config/* ~/.config/
 
 # 恢复用户数据文件
 cp -rf ./.local/share/* ~/.local/share/
+
+# 恢复 Noctalia GUI 设置覆盖（不包含历史记录和密钥）
+if [[ -d ./.local/state ]]; then
+    mkdir -p ~/.local/state
+    cp -rf ./.local/state/. ~/.local/state/
+fi
 
 # 恢复应用程序快捷方式
 sudo cp -rf ./usr/share/applications/* /usr/share/applications/

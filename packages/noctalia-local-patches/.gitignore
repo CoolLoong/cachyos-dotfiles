@@ -1,0 +1,7 @@
+/upstream/
+/src/
+/pkg/
+/dist/
+/noctalia-*.tar.gz
+*.pkg.tar.*
+__pycache__/

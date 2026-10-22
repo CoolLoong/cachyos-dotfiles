@@ -9,3 +9,13 @@
 .local/share/fcitx5/rime/installation.yaml
 .claude
 .omc
+
+# Noctalia only stores selected preference overrides in Git.
+/.local/state/*
+!/.local/state/noctalia-local-patches/
+/.local/state/noctalia-local-patches/*
+!/.local/state/noctalia-local-patches/noctalia/
+/.local/state/noctalia-local-patches/noctalia/*
+!/.local/state/noctalia-local-patches/noctalia/settings.toml
+/.config/noctalia-local-patches/noctalia/plugins/
+__pycache__/

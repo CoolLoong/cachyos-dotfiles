@@ -1,0 +1,33 @@
+pkgbase = noctalia-local-patches
+	pkgdesc = Independent Noctalia 5.3.0 desktop usability patches
+	pkgver = 5.3.0.p2
+	pkgrel = 1
+	url = https://github.com/noctalia-dev/noctalia
+	arch = x86_64
+	license = MIT
+	makedepends = clang
+	makedepends = meson
+	makedepends = ninja
+	makedepends = pkgconf
+	makedepends = wayland-protocols
+	makedepends = nlohmann-json
+	makedepends = stb
+	depends = noctalia>=5.3.0
+	depends = python
+	depends = systemd
+	optdepends = niri: autostart switching with noctalia-patches
+	options = !debug
+	source = noctalia-a33122c.tar.gz::https://codeload.github.com/noctalia-dev/noctalia/tar.gz/a33122c4208a385e19c9a252e65e2751b2c44fbb
+	source = 0001-local-desktop-patches.patch
+	source = noctalia-patched
+	source = noctalia-patches
+	source = control.py
+	source = README.txt
+	sha256sums = 33c7ae74d160665fe0363d4dcdfee03808e792da6eb067832efb2a4c3b32e073
+	sha256sums = caaf28ca1a5bd129cd993fedeb0b47238956329cd77f4e535d93348913aa066d
+	sha256sums = 42ed1cf114a10c4af4aba98a49911367bd4a8a3c9cbd4a01c1b965b776225780
+	sha256sums = 8fac7c14ce0a54922bd476290c392c150295c1f507b034c296fdafb8a417f38c
+	sha256sums = 4d61e0f74c2234e79dd8282c79804e125ad046f93383c2cac4d90713f0204433
+	sha256sums = 8f233395e6c82b493d1f6e92fc21592fbf2ed54824dc2e62807111f2c76c1359
+
+pkgname = noctalia-local-patches
