@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=WeChat
+Name[zh_CN]=微信
+Comment=WeChat for Linux
+Comment[zh_CN]=微信 Linux 版
+Exec=/home/wing/.local/bin/wechat %U
+Icon=wechat
+Terminal=false
+Categories=Network;InstantMessaging;
+StartupNotify=true
+X-AppImage-Version=4.1.13

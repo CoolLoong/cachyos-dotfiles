@@ -5,3 +5,6 @@ default_view = "all"
 track_usage = false
 sort_by_usage = false
 pinned = ["Alacritty", "tern"]
+
+[shell.animation]
+speed = 2.0

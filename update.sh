@@ -59,14 +59,39 @@ case "$MODE" in
             exit 1
         fi
         echo "正在从 aurlist.txt 安装 AUR 软件包..."
+        failed_packages=()
+        log_root="${XDG_STATE_HOME:-$HOME/.local/state}/cachyos-dotfiles/aur"
+        mkdir -p "$log_root"
+        log_dir="$(mktemp -d "$log_root/run-XXXXXXXX")"
+        echo "本次安装日志：$log_dir"
         while IFS= read -r pkg <&3 || [[ -n "$pkg" ]]; do
             [[ -n "$pkg" && "$pkg" != \#* ]] || continue
+            if [[ -f "$DOTFILES_DIR/aurignore.txt" ]] && grep -Fxq -- "$pkg" "$DOTFILES_DIR/aurignore.txt"; then
+                echo "跳过自行管理的本地包 $pkg"
+                continue
+            fi
             if [[ -f "$DOTFILES_DIR/localpkglist.txt" ]] && grep -Fxq -- "$pkg" "$DOTFILES_DIR/localpkglist.txt"; then
                 echo "跳过本地包 $pkg，请使用 ./update.sh local"
                 continue
             fi
-            paru -S --needed --skipreview --noconfirm "$pkg"
+            if paru -S --needed --skipreview --noconfirm "$pkg" 2>&1 | tee "$log_dir/$pkg.log"; then
+                :
+            else
+                status=$?
+                # Preserve explicit interruption instead of starting another install.
+                if (( status == 130 || status == 143 )); then
+                    exit "$status"
+                fi
+                failed_packages+=("$pkg")
+                echo "警告：$pkg 安装失败（退出码 $status），继续处理后续软件包。" >&2
+            fi
         done 3< "$DOTFILES_DIR/aurlist.txt"
+        if (( ${#failed_packages[@]} > 0 )); then
+            echo "AUR 软件包处理结束，以下软件包安装失败：" >&2
+            printf '  %s\n' "${failed_packages[@]}" >&2
+            echo "详细错误日志：$log_dir/<包名>.log" >&2
+            exit 1
+        fi
         echo "AUR 软件包安装完成！"
         ;;
     local)

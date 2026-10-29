@@ -5,12 +5,14 @@
 ## 包含内容
 
 - `.config/` - 用户配置文件（niri、fcitx5、alacritty 等）
+- `.local/bin/` - 应用启动脚本
 - `.local/share/` - 用户数据文件
 - `.local/state/` - 选定的 Noctalia GUI 设置覆盖，仅跟踪 `settings.toml`
 - `etc/` - 系统配置（SDDM、GRUB）
 - `pictures/` - 壁纸等图片资源
 - `pkglist.txt` - 官方仓库软件包列表
 - `aurlist.txt` - AUR 软件包列表
+- `aurignore.txt` - 自行管理的本地包，AUR 安装和列表同步时排除（如 `claudebox`）
 - `localpkglist.txt` - 本仓库维护的本地软件包列表
 - `packages/` - 本地补丁包的源码补丁、PKGBUILD、校验值和版本记录
 
@@ -63,6 +65,10 @@ chmod +x init.sh
 官方版的 `.config/noctalia/` 备份与补丁版配置分别保留。历史记录、通知、密钥及插件下载缓存不纳入 Git。
 远程歌词插件仍由 Noctalia 插件管理器从配置中保存的 Git 来源恢复；尚未下载该插件的离线目录在校验时会提示插件未加载。
 在图形会话中执行 `push` 后，脚本会请求补丁版重新加载配置。
+
+微信使用 `.local/bin/wechat` 启动脚本显式设置 Fcitx 输入法环境，桌面入口也调用这个脚本。
+AppImage 需位于 `~/.local/share/wechat/WeChat.AppImage`；仓库保存启动脚本和桌面入口。
+恢复脚本会替换旧的 `wechat` 符号链接，保留其指向的 AppImage 文件。
 
 ## Noctalia 补丁版本管理
 

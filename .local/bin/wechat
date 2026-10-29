@@ -1,0 +1,13 @@
+#!/bin/bash
+set -euo pipefail
+
+appimage="$HOME/.local/share/wechat/WeChat.AppImage"
+if [[ ! -x "$appimage" ]]; then
+    printf '未找到可执行的微信 AppImage：%s\n' "$appimage" >&2
+    exit 1
+fi
+
+export XMODIFIERS=@im=fcitx
+export GTK_IM_MODULE=fcitx
+export QT_IM_MODULE=fcitx
+exec "$appimage" "$@"

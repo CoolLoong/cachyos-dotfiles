@@ -48,7 +48,7 @@ binds {
 
     // ─── Applications ───
     MOD+RETURN                          hotkey-overlay-title="Open Terminal: alacritty" { spawn-sh "alacritty"; }
-    MOD+SPACE                           hotkey-overlay-title="Open App Launcher: Noctalia" { spawn-sh "noctalia-patched msg panel-toggle launcher"; }
+    MOD+SPACE                           hotkey-overlay-title="Open App Launcher: Noctalia" { spawn "/usr/lib/noctalia-local-patches/bin/noctalia" "msg" "panel-toggle" "launcher"; }
     MOD+ALT+L                           hotkey-overlay-title="Lock Screen: swaylock" { spawn-sh "swaylock"; }
     
     // Please choose your own file manager

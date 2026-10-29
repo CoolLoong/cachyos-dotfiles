@@ -1,4 +1,5 @@
 import os
+import json
 from pathlib import Path
 import shutil
 import subprocess
@@ -25,6 +26,7 @@ class WorkflowTests(unittest.TestCase):
             shutil.copy2(SOURCE / name, self.repo / name)
         self.log = base / 'calls.log'
         self.env = dict(os.environ, HOME=str(self.user), PATH=f'{self.bin}:/usr/bin:/bin',
+                        XDG_STATE_HOME=str(self.user / '.local/state'),
                         CALL_LOG=str(self.log), GIT_CONFIG_GLOBAL='/dev/null')
         self.command(['git', 'init', '-q'])
         self.fake('pacman', '''case "$1" in
@@ -58,12 +60,15 @@ esac
         self.command(['git', 'add', '.config/niri/config.kdl', str(STATE / 'settings.toml')])
         # A selected new config does not need staging before the first pull.
         self.put(self.repo, LAUNCHER, 'old')
+        self.put(self.repo, '.local/bin/wechat', 'old launcher')
         self.put(self.user, '.config/niri/config.kdl', 'new binding')
         self.put(self.user, LAUNCHER, 'categories = false\n')
+        self.put(self.user, '.local/bin/wechat', 'new launcher')
         self.put(self.user, STATE / 'settings.toml', 'config_version = 15\n')
         self.put(self.user, STATE / 'notification_history.json', 'private history')
         self.command(['bash', 'sync.sh', 'pull'])
         self.assertEqual((self.repo / LAUNCHER).read_text(), 'categories = false\n')
+        self.assertEqual((self.repo / '.local/bin/wechat').read_text(), 'new launcher')
         self.assertEqual((self.repo / STATE / 'settings.toml').read_text(), 'config_version = 15\n')
         self.assertEqual((self.repo / 'pkglist.txt').read_text(), 'meson\nnoctalia\n')
         self.assertEqual((self.repo / 'aurlist.txt').read_text(), 'example-bin\n')
@@ -84,12 +89,77 @@ esac
         self.command(['bash', 'update.sh', 'local'])
         self.assertIn(f'makepkg {package.parent} --syncdeps --install --needed', self.log.read_text())
 
+    def test_push_replaces_wechat_link_without_overwriting_appimage(self):
+        image = self.put(self.user, '.local/share/wechat/WeChat.AppImage', 'keep binary')
+        entry = self.user / '.local/bin/wechat'
+        entry.parent.mkdir(parents=True)
+        entry.symlink_to(image)
+        launcher = self.put(self.repo, '.local/bin/wechat', '#!/bin/bash\nexit 0\n')
+        launcher.chmod(0o755)
+        self.command(['bash', 'sync.sh', 'push'])
+        self.assertEqual(image.read_text(), 'keep binary')
+        self.assertFalse(entry.is_symlink())
+        self.assertEqual(entry.read_text(), launcher.read_text())
+        self.assertTrue(os.access(entry, os.X_OK))
+
+    def test_wechat_launcher_exports_input_environment_and_preserves_arguments(self):
+        image = self.put(self.user, '.local/share/wechat/WeChat.AppImage', '''#!/usr/bin/python3
+import os, sys, json
+print(json.dumps({"args": sys.argv[1:], "env": {key: os.environ.get(key) for key in
+    ["XMODIFIERS", "GTK_IM_MODULE", "QT_IM_MODULE"]}}))
+''')
+        image.chmod(0o755)
+        self.env.update(QT_IM_MODULE='wrong', GTK_IM_MODULE='wrong', XMODIFIERS='wrong')
+        args = ['file:///tmp/with spaces', '--example']
+        result = self.command(['bash', str(SOURCE / '.local/bin/wechat'), *args])
+        actual = json.loads(result.stdout)
+        self.assertEqual(actual['args'], args)
+        self.assertEqual(actual['env'], {'XMODIFIERS': '@im=fcitx',
+                                         'GTK_IM_MODULE': 'fcitx', 'QT_IM_MODULE': 'fcitx'})
+
     def test_aur_mode_does_not_send_local_packages_to_paru(self):
         self.put(self.repo, 'aurlist.txt', 'example-bin\nnoctalia-local-patches\n')
         self.command(['bash', 'update.sh', 'aur'])
         calls = self.log.read_text()
         self.assertIn('example-bin', calls)
         self.assertNotIn('noctalia-local-patches', calls)
+
+    def test_aur_failure_continues_and_reports_failed_packages(self):
+        self.put(self.repo, 'aurlist.txt', 'claudebox\nexample-bin\nanother-missing\nlast-bin\n')
+        self.fake('paru', '''printf '%s\\n' "${@: -1}" >> "$CALL_LOG"
+echo "diagnostic for ${@: -1}" >&2
+case "${@: -1}" in claudebox|another-missing) exit 1 ;; esac
+''')
+        result = self.command(['bash', 'update.sh', 'aur'], check=False)
+        self.assertEqual(result.returncode, 1)
+        self.assertEqual(self.log.read_text().splitlines(),
+                         ['claudebox', 'example-bin', 'another-missing', 'last-bin'])
+        self.assertIn('  claudebox\n  another-missing\n', result.stderr)
+        self.assertNotIn('AUR 软件包安装完成', result.stdout)
+        logs = list((self.user / '.local/state/cachyos-dotfiles/aur').glob('run-*/claudebox.log'))
+        self.assertEqual(len(logs), 1)
+        self.assertIn('diagnostic for claudebox', logs[0].read_text())
+
+    def test_aur_interruption_stops_processing(self):
+        self.put(self.repo, 'aurlist.txt', 'first-bin\nnext-bin\n')
+        self.fake('paru', 'printf "%s\\n" "${@: -1}" >> "$CALL_LOG"\nexit 130\n')
+        result = self.command(['bash', 'update.sh', 'aur'], check=False)
+        self.assertEqual(result.returncode, 130)
+        self.assertEqual(self.log.read_text().splitlines(), ['first-bin'])
+
+    def test_external_local_packages_are_excluded_from_aur_and_sync(self):
+        self.put(self.repo, 'aurignore.txt', 'claudebox\n')
+        self.put(self.repo, 'aurlist.txt', 'claudebox\nexample-bin\n')
+        self.command(['bash', 'update.sh', 'aur'])
+        self.assertNotIn('claudebox', self.log.read_text())
+        self.assertIn('example-bin', self.log.read_text())
+        self.fake('pacman', '''case "$1" in
+  -Qqen) printf 'meson\\n' ;;
+  -Qqem) printf 'claudebox\\nexample-bin\\nnoctalia-local-patches\\n' ;;
+esac
+''')
+        self.command(['bash', 'sync.sh', 'pull'])
+        self.assertEqual((self.repo / 'aurlist.txt').read_text(), 'example-bin\n')
 
     def test_failed_local_build_does_not_report_success(self):
         self.put(self.repo, 'packages/noctalia-local-patches/PKGBUILD', 'pkgname=noctalia-local-patches\n')
@@ -103,6 +173,7 @@ esac
         package.mkdir(parents=True)
         shutil.copy2(SOURCE / 'packages/noctalia-local-patches/.gitignore', package / '.gitignore')
         paths = [STATE / 'notification_history.json', STATE / 'storage.key',
+                 Path('.local/share/wechat/WeChat.AppImage'),
                  Path('packages/noctalia-local-patches/src/build/cache'),
                  Path('packages/noctalia-local-patches/noctalia-build.pkg.tar.zst')]
         for path in paths:

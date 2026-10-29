@@ -33,6 +33,7 @@ sync_system_to_project() {
     echo "正在从系统同步配置到项目..."
 
     sync_tracked_files ".config" "$HOME/.config"
+    sync_tracked_files ".local/bin" "$HOME/.local/bin"
     sync_tracked_files ".local/share" "$HOME/.local/share"
     sync_tracked_files ".local/state" "$HOME/.local/state"
 
@@ -83,9 +84,14 @@ sync_system_to_project() {
     pacman -Qqen > "$DOTFILES_DIR/pkglist.txt"
 
     echo "更新 aurlist.txt..."
-    if [[ -f "$DOTFILES_DIR/localpkglist.txt" ]]; then
+    local exclude_lists=()
+    local exclude_list
+    for exclude_list in localpkglist.txt aurignore.txt; do
+        [[ ! -f "$DOTFILES_DIR/$exclude_list" ]] || exclude_lists+=("$DOTFILES_DIR/$exclude_list")
+    done
+    if (( ${#exclude_lists[@]} > 0 )); then
         pacman -Qqem | awk 'FILENAME != "-" { skip[$0] = 1; next } !($0 in skip)' \
-            "$DOTFILES_DIR/localpkglist.txt" - > "$DOTFILES_DIR/aurlist.txt"
+            "${exclude_lists[@]}" - > "$DOTFILES_DIR/aurlist.txt"
     else
         pacman -Qqem > "$DOTFILES_DIR/aurlist.txt"
     fi
@@ -100,6 +106,12 @@ sync_project_to_system() {
         echo "同步 .config/"
         mkdir -p "$HOME/.config"
         cp -rf "$DOTFILES_DIR/.config/." "$HOME/.config/"
+    fi
+
+    if [[ -d "$DOTFILES_DIR/.local/bin" ]]; then
+        echo "同步 .local/bin/"
+        mkdir -p "$HOME/.local/bin"
+        cp -rf --remove-destination "$DOTFILES_DIR/.local/bin/." "$HOME/.local/bin/"
     fi
 
     if [[ -d "$DOTFILES_DIR/.local/share" ]]; then

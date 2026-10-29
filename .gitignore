@@ -19,3 +19,4 @@
 !/.local/state/noctalia-local-patches/noctalia/settings.toml
 /.config/noctalia-local-patches/noctalia/plugins/
 __pycache__/
+*.AppImage

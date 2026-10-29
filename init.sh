@@ -34,6 +34,12 @@ cp -rf ./.config/* ~/.config/
 # 恢复用户数据文件
 cp -rf ./.local/share/* ~/.local/share/
 
+# 替换旧的程序符号链接时，不沿链接覆盖 AppImage 本体
+if [[ -d ./.local/bin ]]; then
+    mkdir -p ~/.local/bin
+    cp -rf --remove-destination ./.local/bin/. ~/.local/bin/
+fi
+
 # 恢复 Noctalia GUI 设置覆盖（不包含历史记录和密钥）
 if [[ -d ./.local/state ]]; then
     mkdir -p ~/.local/state
