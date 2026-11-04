@@ -48,6 +48,7 @@ x-scheme-handler/unknown=com.google.Chrome.desktop
 text/csv=wps-office-et.desktop
 x-scheme-handler/codeg=codeg-handler.desktop
 inode/directory=tern.desktop
+application/pdf=com.google.Chrome.desktop
 
 [Added Associations]
 text/x-log=code.desktop;dev.zed.Zed.desktop;
@@ -72,3 +73,4 @@ text/x-patch=dev.zed.Zed.desktop;
 image/png=oculante.desktop;
 text/x-chdr=dev.zed.Zed.desktop;
 text/csv=wps-office-et.desktop;
+application/pdf=com.google.Chrome.desktop;
